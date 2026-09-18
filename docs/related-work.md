@@ -62,6 +62,10 @@ separate machines and sites over time.
 
 ## What's actually unique here
 
+fleetbroker deliberately operates below the agent orchestration layer - it
+schedules *whether and when* an existing agent gets safely woken, not what
+that agent does once it's awake.
+
 - **The specific failure mode.** Fair quota-sharing *within a single
   Anthropic account* across independent, already-running automations,
   including a documented, crash-tested scheduling layer - not team billing

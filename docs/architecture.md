@@ -176,3 +176,37 @@ project's scope, but a self-hosted secrets manager (a password manager with
 a scriptable CLI, or a dedicated secrets store) is a natural fit for
 populating them without ever committing a real value anywhere - see
 [`docs/secrets-management.md`](secrets-management.md) for the pattern.
+
+## Design philosophy: guardrails for what this project doesn't become
+
+The core abstraction - `gather() -> prepare_state() -> decide() -> build_body()`
+feeding a structurally-restricted `relay()` - is a stable interface, not an
+implementation detail (see [`docs/writing-a-probe.md`](writing-a-probe.md)).
+Quota is its first, flagship resource, not its whole identity; a future probe
+guarding a different scarce resource is a natural extension of the same
+interface. That said, three things are deliberately *not* on this project's
+roadmap, because adding them would blur the one distinction that makes it
+useful:
+
+- **No custom messaging or transport.** Claude Code's own
+  `ListAgents`/`SendMessage` (Remote Control) already solves cross-instance
+  discovery and delivery, including across independent sites - see
+  [Cross-node communication](#cross-node-communication) above. Building a
+  parallel transport would only be justified by a concrete capability gap in
+  that primitive, not by convenience or symmetry with other fleet tools.
+- **No task queue, dashboard, or orchestration engine.** Those are what an
+  agent orchestration framework provides; fleetbroker sits *below* that
+  layer (see [`docs/related-work.md`](related-work.md)) and only answers one
+  question - is it currently safe to wake an existing agent - not what that
+  agent should do next.
+- **No feature added to look more complete.** The guiding question for any
+  new capability is: does it make running several persistent Claude Code
+  instances against a shared resource *more reliably safe*, not merely more
+  capable? A failure mode caught and regression-tested (see
+  [`docs/chaos-testing.md`](chaos-testing.md)) is worth more to this project
+  than a new integration.
+
+If a proposed change starts needing its own task model, agent registry, or
+chat layer to make sense, that's a signal to stop and ask why an existing
+agent orchestration project isn't a better fit for that need, rather than
+growing this one to cover it.
