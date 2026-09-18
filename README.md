@@ -75,7 +75,7 @@ agent platforms.
    function, whether there's spare quota right now.
 2. On a green light, it fires a **one-shot, MCP-free Claude invocation**
    (`claude -p --strict-mcp-config --mcp-config '{"mcpServers":{}}'`) — cheap,
-   fast, and structurally unable to spawn the MCP roster that crashed a
+   fast, and explicitly isolated from the MCP roster that crashed a
    container in this project's own history.
 3. That one-shot process does **not** contact anything itself. Its only job is
    to relay a message, via the already-authenticated `ListAgents`/`SendMessage`
@@ -107,7 +107,7 @@ Claude Code remains responsible for the agent, its tools, context, and
 cross-instance messaging. fleetbroker only decides when and how background
 work is allowed to wake an existing agent.
 
-## Quickstart
+## Why it matters
 
 ```text
 Without fleetbroker:
@@ -127,6 +127,8 @@ With fleetbroker:
              └─ yes → MCP-free relay
                       └─ existing persistent Claude session
 ```
+
+## Quickstart
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/wpatrik14/fleetbroker/master/install.sh | bash
@@ -223,13 +225,6 @@ This is an early-stage, opinionated tool built around Claude Code's current
 CLI and Remote Control behavior. Expect the integration surface to evolve as
 Claude Code evolves — see [`docs/compatibility.md`](docs/compatibility.md)
 for the verified CLI version range.
-
-## Support
-
-If this saved you from repeating the incidents in
-[`docs/incidents.md`](docs/incidents.md) the hard way:
-
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/wpatrik14e)
 
 ## License
 
