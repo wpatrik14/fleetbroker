@@ -28,7 +28,7 @@ dashboard. This solves *access control between people*, not *scheduling
 between automations*. It also requires standing up and operating a separate
 server/DB/dashboard stack - fleetbroker adds no new service at all.
 
-**Multi-account rotation tools** (e.g. `israads/claude-multisession`,
+**Multi-account rotation tools** (e.g. `snipeship/claude-balancer`,
 `KarpelesLab/teamclaude`) - spread load across **several** Anthropic
 accounts/subscriptions and rotate or proxy between them when one hits a
 limit. This sidesteps a single account's rate limit rather than sharing it
