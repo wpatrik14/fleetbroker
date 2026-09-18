@@ -85,6 +85,29 @@ class TestRunnerCooldown(unittest.TestCase):
             mock_relay.assert_not_called()
         self.assertIn("[dry-run] would relay", self._log_text())
 
+    def test_heartbeat_fires_once_per_tick_regardless_of_decision(self):
+        _install_fake_probe("fake_probe_hb", notify=False)
+        cfg = self._config("fake_probe_hb")
+        cfg["heartbeat"] = {"url": "https://kuma.example.com/x"}
+        with patch.object(runner.heartbeat, "push") as mock_push:
+            runner.run(cfg)
+        mock_push.assert_called_once_with(self.home, cfg["heartbeat"])
+
+    def test_heartbeat_still_fires_on_gather_failure(self):
+        mod = _install_fake_probe("fake_probe_hb_err", notify=True)
+        mod.gather = lambda cfg: (_ for _ in ()).throw(RuntimeError("boom"))
+        cfg = self._config("fake_probe_hb_err")
+        cfg["heartbeat"] = {"url": "https://kuma.example.com/x"}
+        with patch.object(runner.heartbeat, "push") as mock_push:
+            runner.run(cfg)
+        mock_push.assert_called_once_with(self.home, cfg["heartbeat"])
+
+    def test_heartbeat_not_called_when_not_configured(self):
+        _install_fake_probe("fake_probe_no_hb", notify=False)
+        with patch.object(runner.heartbeat, "push") as mock_push:
+            runner.run(self._config("fake_probe_no_hb"))
+        mock_push.assert_called_once_with(self.home, None)
+
 
 if __name__ == "__main__":
     unittest.main()

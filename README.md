@@ -199,6 +199,16 @@ repo into a shared backlog with priority/size labels and a fairness check
 (so one site can't keep claiming work while a peer's queue sits idle) — see
 [`docs/backlog-fairness.md`](docs/backlog-fairness.md).
 
+## Monitoring node liveness
+
+An optional `heartbeat` config block pushes a ping to an external push-style
+monitor (e.g. [Uptime Kuma](https://github.com/louislam/uptime-kuma)) on
+every completed tick, so a silently-dead node — crashed container, broken
+crontab after a re-provision — shows up on the same dashboard as every other
+monitored service instead of requiring a per-node `log.txt` check. Zero new
+dependency (stdlib `urllib`), opt-in, and a broken monitor endpoint never
+affects the tick itself — see [`docs/heartbeat.md`](docs/heartbeat.md).
+
 ## Documentation
 
 | Goal | Start here |
@@ -214,6 +224,7 @@ repo into a shared backlog with priority/size labels and a fairness check
 | Write a new probe | [`docs/writing-a-probe.md`](docs/writing-a-probe.md) |
 | Share a backlog fairly across sites | [`docs/backlog-fairness.md`](docs/backlog-fairness.md) |
 | Source node secrets without committing them | [`docs/secrets-management.md`](docs/secrets-management.md) |
+| Get alerted when a node goes silent | [`docs/heartbeat.md`](docs/heartbeat.md) |
 
 ## Limitations
 
