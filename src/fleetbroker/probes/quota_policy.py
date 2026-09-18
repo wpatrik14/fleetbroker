@@ -1,18 +1,18 @@
-"""Flagship probe: gates on Home Assistant sensors tracking Anthropic account
-usage, and relays a green light when there's spare quota to safely hand to
-another fleet participant.
+"""Shared quota policy: decide whether there's spare Anthropic account usage
+to safely hand to another fleet participant right now.
 
 Every constant and precedence rule below is ported verbatim from the
 production quota-broker this project generalizes - see docs/incidents.md for
 the operational history behind each one. Do not "simplify" the precedence
 chain without re-reading that history first.
+
+This module holds only the policy (`decide`/`prepare_state`/`build_body`/
+`default_state`) - it has no I/O of its own. `fleetbroker.probes.anthropic_usage`
+supplies the data via its own `gather()` and re-exports these functions
+unchanged, so a probe swap never changes policy behavior.
 """
 
-import json
-import urllib.error
-import urllib.request
 from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 from ..probe import Decision
@@ -34,62 +34,6 @@ DAILY_CAP_PCT = 14
 
 def default_state() -> dict[str, Any]:
     return {"last_notify_epoch": 0, "day_start_date": None, "day_start_week_usage": 0.0}
-
-
-def _fetch_entity_state(host: str, port: int, entity_id: str, token: str) -> dict:
-    req = urllib.request.Request(
-        f"http://{host}:{port}/api/states/{entity_id}",
-        headers={"Authorization": f"Bearer {token}"},
-    )
-    with urllib.request.urlopen(req, timeout=10) as resp:
-        return json.loads(resp.read())
-
-
-def gather(probe_config: dict[str, Any]) -> dict[str, Any]:
-    """All I/O lives here so the runner's single broad except around this
-    call is enough to turn any failure (bad token file, HA down, malformed
-    payload, unavailable sensor) into one clean log line instead of a
-    traceback."""
-    token = Path(probe_config["token_file"]).expanduser().read_text().strip()
-    host = probe_config["ha_host"]
-    port = probe_config.get("ha_port", 8123)
-    entities = probe_config["entities"]
-
-    session_usage = float(
-        _fetch_entity_state(host, port, entities["session_usage"], token)["state"]
-    )
-    week_usage = float(
-        _fetch_entity_state(host, port, entities["week_usage"], token)["state"]
-    )
-
-    session_reset = None
-    try:
-        raw = _fetch_entity_state(host, port, entities["session_reset_time"], token)
-        session_reset = datetime.fromisoformat(raw["state"])
-    except (ValueError, KeyError, urllib.error.URLError):
-        pass  # sensor reports "unknown" briefly around rollover - treat as far away
-
-    week_reset = None
-    try:
-        raw = _fetch_entity_state(host, port, entities["weekly_reset_time"], token)
-        week_reset = datetime.fromisoformat(raw["state"])
-    except (ValueError, KeyError, urllib.error.URLError):
-        pass
-
-    week_pace = None
-    try:
-        raw = _fetch_entity_state(host, port, entities["week_usage_pace"], token)
-        week_pace = float(raw["state"])
-    except (ValueError, KeyError, urllib.error.URLError):
-        pass
-
-    return {
-        "session_usage": session_usage,
-        "week_usage": week_usage,
-        "session_reset": session_reset,
-        "week_reset": week_reset,
-        "week_pace": week_pace,
-    }
 
 
 def prepare_state(state: dict[str, Any], data: dict[str, Any], now: datetime) -> float:

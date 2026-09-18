@@ -57,17 +57,23 @@ top of it.
 ## Quickstart
 
 ```bash
-python3 -m venv /opt/fleetbroker/.venv
-/opt/fleetbroker/.venv/bin/pip install -e .
-cp examples/quota-broker-direct.json /root/.fleetbroker-quota/config.json  # edit placeholders
-/opt/fleetbroker/.venv/bin/fleetbroker doctor /root/.fleetbroker-quota/config.json
-/opt/fleetbroker/.venv/bin/fleetbroker run /root/.fleetbroker-quota/config.json --dry-run
+curl -fsSL https://raw.githubusercontent.com/wpatrik14/fleetbroker/master/install.sh | bash
+```
+
+This installs the `fleetbroker` package (a venv under `/opt/fleetbroker`,
+zero runtime dependencies) and puts a `fleetbroker` command on your PATH.
+Then:
+
+```bash
+cp examples/quota-broker.json /root/.fleetbroker-quota/config.json  # edit placeholders
+fleetbroker doctor /root/.fleetbroker-quota/config.json
+fleetbroker run /root/.fleetbroker-quota/config.json --dry-run
 ```
 
 Then wire it into cron — see [`examples/crontab.example`](examples/crontab.example).
-`quota-broker-direct.json` needs nothing but a logged-in `claude` CLI (see
-[`docs/direct-api.md`](docs/direct-api.md)); `quota-broker.json` is the
-Home-Assistant-sourced alternative, for anyone who already has that set up.
+`quota-broker.json` needs nothing but a logged-in `claude` CLI. Prefer to
+install by hand instead? `install.sh` is just `python3 -m venv` + `pip
+install -e .` — read it, it's short.
 
 ## Standing up a new fleet participant
 
@@ -87,14 +93,14 @@ file itself, only substituted from the installer's environment.
 
 ## Writing your own probe
 
-The quota policy is the flagship, shipped as two probes sharing the exact
-same `decide()`/`prepare_state()`/`build_body()` — only the data source
-differs: `fleetbroker.probes.anthropic_usage` (recommended, no extra
-dependency, see [`docs/direct-api.md`](docs/direct-api.md)) and
-`fleetbroker.probes.ha_quota` (Home-Assistant-sourced). The probe interface
-itself is generic — see [`docs/writing-a-probe.md`](docs/writing-a-probe.md)
-and the simpler `fleetbroker.probes.gh_repo_watch` reference implementation
-(no policy engine at all, just a watermark comparison).
+The quota policy (`fleetbroker.probes.quota_policy`) is the flagship, and
+ships with one data source — `fleetbroker.probes.anthropic_usage`, which
+reads straight from Anthropic's own OAuth usage endpoint using the
+already-authenticated `claude` CLI's own credentials, no extra dependency
+to stand up. The probe interface itself is generic — see
+[`docs/writing-a-probe.md`](docs/writing-a-probe.md) and the simpler
+`fleetbroker.probes.gh_repo_watch` reference implementation (no policy
+engine at all, just a watermark comparison).
 
 For multi-site setups, `fleetbroker.probes.gh_backlog` turns a GitHub Issues
 repo into a shared backlog with priority/size labels and a fairness check
@@ -107,7 +113,6 @@ repo into a shared backlog with priority/size labels and a fairness check
 | --- | --- |
 | See the whole picture (deployment, cross-node comms, personas, backlog, secrets) | [`docs/architecture.md`](docs/architecture.md) |
 | Understand why each safety mechanism exists | [`docs/incidents.md`](docs/incidents.md) |
-| Drop the Home Assistant dependency | [`docs/direct-api.md`](docs/direct-api.md) |
 | Provision a new node's login correctly | [`docs/auth.md`](docs/auth.md) |
 | Understand relay addressing (tmux vs. peer name) | [`docs/addressing.md`](docs/addressing.md) |
 | Write a new probe | [`docs/writing-a-probe.md`](docs/writing-a-probe.md) |

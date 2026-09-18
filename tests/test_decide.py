@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timedelta, timezone
 
-from fleetbroker.probes.ha_quota import decide
+from fleetbroker.probes.quota_policy import decide
 
 
 NOW = datetime(2026, 9, 17, 12, 0, tzinfo=timezone.utc)

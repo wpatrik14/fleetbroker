@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timezone
 
-from fleetbroker.probes.ha_quota import prepare_state
+from fleetbroker.probes.quota_policy import prepare_state
 
 
 class TestDailyCapBaseline(unittest.TestCase):

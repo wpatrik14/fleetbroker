@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 
 from fleetbroker.probes.anthropic_usage import _parse_usage
-from fleetbroker.probes import ha_quota
+from fleetbroker.probes import quota_policy
 
 
 class TestParseUsage(unittest.TestCase):
@@ -26,7 +26,7 @@ class TestParseUsage(unittest.TestCase):
         self.assertIsNone(data["week_reset"])
         self.assertIsNone(data["week_pace"])
 
-    def test_pace_formula_matches_hacs_integration_source(self):
+    def test_pace_formula(self):
         # A reset exactly now (0 seconds left) means 100% of the week has
         # elapsed; utilization 30% => pace should be 30 - 100 = -70.
         now = datetime.now(timezone.utc)
@@ -36,12 +36,12 @@ class TestParseUsage(unittest.TestCase):
         data = _parse_usage(raw)
         self.assertAlmostEqual(data["week_pace"], -70.0, delta=0.5)
 
-    def test_reused_policy_functions_are_identical_objects_from_ha_quota(self):
+    def test_reused_policy_functions_are_identical_objects_from_quota_policy(self):
         from fleetbroker.probes import anthropic_usage
-        self.assertIs(anthropic_usage.decide, ha_quota.decide)
-        self.assertIs(anthropic_usage.prepare_state, ha_quota.prepare_state)
-        self.assertIs(anthropic_usage.build_body, ha_quota.build_body)
-        self.assertIs(anthropic_usage.default_state, ha_quota.default_state)
+        self.assertIs(anthropic_usage.decide, quota_policy.decide)
+        self.assertIs(anthropic_usage.prepare_state, quota_policy.prepare_state)
+        self.assertIs(anthropic_usage.build_body, quota_policy.build_body)
+        self.assertIs(anthropic_usage.default_state, quota_policy.default_state)
 
 
 if __name__ == "__main__":

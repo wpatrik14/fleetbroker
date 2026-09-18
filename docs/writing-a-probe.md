@@ -1,7 +1,7 @@
 # Writing a probe
 
 A probe is a plain Python module (referenced by dotted path in a node's
-config, e.g. `"probe": "fleetbroker.probes.ha_quota"`) exposing five
+config, e.g. `"probe": "fleetbroker.probes.anthropic_usage"`) exposing five
 module-level functions. See `fleetbroker.probe.Probe` for the formal
 `Protocol`, and `fleetbroker.probes.gh_repo_watch` for the simplest possible
 real example (no policy engine at all - just a last-seen watermark).
@@ -27,7 +27,7 @@ def decide(data: Any, derived: Any, now: datetime) -> Decision:
     """Pure policy function - given the gathered data and whatever
     prepare_state() derived, return a Decision(notify, window_minutes,
     reason). Keep this pure (no I/O, no state mutation) so it stays trivially
-    unit-testable, the way fleetbroker.probes.ha_quota.decide() is."""
+    unit-testable, the way fleetbroker.probes.quota_policy.decide() is."""
 
 def build_body(data: Any, derived: Any, decision: Decision) -> str:
     """Only called when decision.notify is True. Return the message text to

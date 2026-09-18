@@ -8,7 +8,7 @@ the log line an operator would actually see.
 import unittest
 from datetime import datetime, timezone
 
-from fleetbroker.probes.ha_quota import decide
+from fleetbroker.probes.quota_policy import decide
 
 
 class TestGoldenReplay(unittest.TestCase):
