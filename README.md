@@ -13,31 +13,40 @@ Claude Code. It does not replace Claude Code, provide another agent runtime,
 or orchestrate your agents' work — it makes running multiple independent
 instances against shared resources safer.
 
+Fleet nodes are independent machines - typically separate hosts, potentially
+on completely different networks. They coordinate over the internet rather
+than relying on a shared LAN or filesystem.
+
 ```text
-                         Anthropic account
-                                │
-                         shared usage quota
-                                │
-                   ┌────────────┴────────────┐
-                   │        fleetbroker       │
-                   │   (runs locally per node) │
-                   │   probe → policy → relay  │
-                   └────────┬──────────┬───────┘
-                            │          │
-                    ┌───────▼──┐   ┌───▼───────┐
-                    │  Node A  │   │  Node B   │
-                    │  Claude  │   │  Claude   │
-                    │  Code    │   │  Code     │
-                    └───────┬──┘   └───┬───────┘
-                            │          │
-                            └────┬─────┘
-                                 │
-                     Claude Code Remote Control
-                     (ListAgents / SendMessage)
+                              Anthropic account
+                                     │
+                              shared usage quota
+                                     │
+                    ┌────────────────┴────────────────┐
+                    │                                 │
+              Network A                          Network B
+           (e.g. a home lab)                (e.g. another site, a VPS)
+                    │                                 │
+            ┌───────▼───────┐                 ┌───────▼───────┐
+            │    Node A     │                 │    Node B     │
+            │  fleetbroker  │                 │  fleetbroker  │
+            │ probe→policy  │                 │ probe→policy  │
+            │    →relay     │                 │    →relay     │
+            │       │       │                 │       │       │
+            │  Claude Code  │                 │  Claude Code  │
+            └───────┬───────┘                 └───────┬───────┘
+                    │                                 │
+                    └────────────────┬────────────────┘
+                                      │
+                       Claude Code Remote Control
+                    (ListAgents / SendMessage, over the internet)
 ```
 
-fleetbroker schedules and safely wakes agents; Claude Code remains the agent
-runtime and the cross-instance communication layer.
+No shared filesystem, LAN, or central agent host is required - each node
+runs its own fleetbroker instance locally and coordinates only through
+Claude Code's own Remote Control backend. fleetbroker schedules and safely
+wakes agents; Claude Code remains the agent runtime and the cross-instance
+communication layer.
 
 ## Why fleetbroker?
 
