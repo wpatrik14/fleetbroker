@@ -14,7 +14,6 @@ What's NOT covered here because it can't be a fast, hermetic unit test:
 import json
 import os
 import shutil
-import stat
 import subprocess
 import sys
 import tempfile
@@ -192,11 +191,20 @@ class TestWatchdogWithRealTmux(unittest.TestCase):
         subprocess.run(["tmux", "kill-session", "-t", self.session], capture_output=True)
         self._fakebin_dir.cleanup()
 
-    def _make_fake_claude_on_path(self) -> str:
+    def _make_fake_claude_binary(self) -> Path:
+        # A symlink named "claude" pointing at the real `sleep` binary,
+        # invoked by absolute path. Linux sets a process's comm (what
+        # tmux's pane_current_command reads) from the exact name passed to
+        # execve() for a real ELF binary, regardless of symlink target -
+        # this is well-defined and version-independent. A `#!/bin/bash`
+        # shebang script named "claude" was tried first and rejected: comm
+        # assignment for shebang scripts goes through binfmt_script and a
+        # shell's "exec last command" optimization, and empirically gave
+        # inconsistent results (passed in isolation, failed as part of the
+        # full suite, failed in CI) - not reliable enough to depend on.
         fake_claude = Path(self._fakebin_dir.name) / "claude"
-        fake_claude.write_text("#!/bin/bash\nsleep 100\n")
-        fake_claude.chmod(fake_claude.stat().st_mode | stat.S_IEXEC)
-        return f"{self._fakebin_dir.name}:{os.environ['PATH']}"
+        fake_claude.symlink_to(shutil.which("sleep"))
+        return fake_claude
 
     def _run_watchdog(self, dry_run: bool) -> subprocess.CompletedProcess:
         env = dict(os.environ)
@@ -206,14 +214,8 @@ class TestWatchdogWithRealTmux(unittest.TestCase):
         return subprocess.run(["bash", self.WATCHDOG], capture_output=True, text=True, env=env, timeout=10)
 
     def test_healthy_session_with_live_claude_pane_passes_silently(self):
-        # tmux new-session's client env does NOT propagate to a new session
-        # on an already-running server (this is incident #3's own failure
-        # mode) - use -e to set PATH scoped to just this session instead.
-        path_with_fake_claude = self._make_fake_claude_on_path()
-        subprocess.run(
-            ["tmux", "new-session", "-d", "-s", self.session, "-e", f"PATH={path_with_fake_claude}", "claude"],
-            check=True,
-        )
+        fake_claude = self._make_fake_claude_binary()
+        subprocess.run(["tmux", "new-session", "-d", "-s", self.session, str(fake_claude), "100"], check=True)
         result = self._run_watchdog(dry_run=True)
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stdout.strip(), "")
