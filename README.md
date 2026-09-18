@@ -105,12 +105,14 @@ repo into a shared backlog with priority/size labels and a fairness check
 
 | Goal | Start here |
 | --- | --- |
+| See the whole picture (deployment, cross-node comms, personas, backlog, secrets) | [`docs/architecture.md`](docs/architecture.md) |
 | Understand why each safety mechanism exists | [`docs/incidents.md`](docs/incidents.md) |
 | Drop the Home Assistant dependency | [`docs/direct-api.md`](docs/direct-api.md) |
 | Provision a new node's login correctly | [`docs/auth.md`](docs/auth.md) |
 | Understand relay addressing (tmux vs. peer name) | [`docs/addressing.md`](docs/addressing.md) |
 | Write a new probe | [`docs/writing-a-probe.md`](docs/writing-a-probe.md) |
 | Share a backlog fairly across sites | [`docs/backlog-fairness.md`](docs/backlog-fairness.md) |
+| Source node secrets without committing them | [`docs/secrets-management.md`](docs/secrets-management.md) |
 
 ## Current limitation
 
@@ -120,6 +122,13 @@ silently doubles the effective daily cap. v1's supported topology is exactly
 one quota-broker node per Anthropic account; every other fleet participant
 runs non-quota probes and is a relay recipient only. Fleet-wide quota
 accounting is a natural v2, not silently glossed over here.
+
+## Support
+
+If this saved you from repeating the incidents in
+[`docs/incidents.md`](docs/incidents.md) the hard way:
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/wpatrik14e)
 
 ## License
 
