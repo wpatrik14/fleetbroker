@@ -6,6 +6,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from . import lock
 from . import runner
 from . import state as state_mod
 from .adapters.claude import status as claude_status
@@ -60,6 +61,16 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         f"crontab has an entry for this config",
         _crontab_has_entry(str(args.config)),
     )
+
+    # Never a hard failure - a briefly-held lock just means a run is
+    # genuinely in progress right now, not a bug. See issue #8.
+    if home.exists():
+        try:
+            with lock.run_lock(home):
+                pass
+            print("[OK] run lock available (no other fleetbroker run in progress)")
+        except lock.LockHeld:
+            print("[INFO] run lock currently held - another fleetbroker run is in progress for this config")
 
     print()
     print("Overall: " + ("OK" if ok else "FAIL"))

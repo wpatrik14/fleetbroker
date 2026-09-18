@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from . import journal
+from . import lock
 from . import state as state_mod
 from .adapters.claude import remote_control as relay
 
@@ -13,6 +14,14 @@ def run(config: dict[str, Any], dry_run: bool = False) -> None:
     home.mkdir(parents=True, exist_ok=True)
     probe = importlib.import_module(config["probe"])
 
+    try:
+        with lock.run_lock(home):
+            _run_locked(probe, config, home, dry_run)
+    except lock.LockHeld as e:
+        journal.log(home, f"SKIP: {e}")
+
+
+def _run_locked(probe: Any, config: dict[str, Any], home: Path, dry_run: bool) -> None:
     st = state_mod.load_state(home, probe.default_state())
     now = datetime.now(timezone.utc)
 

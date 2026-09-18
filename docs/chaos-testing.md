@@ -23,6 +23,12 @@ code exists, not that the real failure is actually caught the same way.
 - **A real connection-refused network error** during `gather()` (a genuine
   socket error against a closed local port, not a mocked `RuntimeError`) is
   caught by the runner's guarded gather exactly like any other failure.
+- **Two real, separate `fleetbroker run` processes racing on the same home
+  dir** - a probe with an artificially slow `gather()` overlaps two whole
+  invocations on purpose; asserts exactly one relays and the other logs a
+  clean skip, never both. Direct regression test for the state.json race a
+  slow tick could otherwise cause (issue #8), fixed with a non-blocking
+  `fcntl.flock` around each run's critical section (`fleetbroker.lock`).
 - **`provision/tmux-watchdog.sh` against a real, disposable tmux session**
   (never the live `claude` session) via `FLEETBROKER_WATCHDOG_SESSION`:
   detects a missing session, detects a session whose pane is running

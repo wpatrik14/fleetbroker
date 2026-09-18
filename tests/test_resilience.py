@@ -96,6 +96,58 @@ class TestRelaySurvivesRealProcessFailures(unittest.TestCase):
             del _sys.modules[mod_name]
 
 
+class TestConcurrentRunsDoNotRace(unittest.TestCase):
+    """Two real, separate `fleetbroker run` processes against the same home
+    dir must never both relay - direct regression test for issue #8 (a slow
+    gather() overlapping with the next cron tick used to let both processes
+    read the same last_notify_epoch and both decide to relay)."""
+
+    def setUp(self):
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.home = Path(self._tmpdir.name) / "home"
+        self.home.mkdir()
+        self.probe_dir = Path(self._tmpdir.name) / "probe_dir"
+        self.probe_dir.mkdir()
+        (self.probe_dir / "fake_slow_probe.py").write_text(
+            "import time\n"
+            "from fleetbroker.probe import Decision\n\n"
+            "def default_state():\n    return {}\n\n"
+            "def gather(cfg):\n    time.sleep(1.5)\n    return {}\n\n"
+            "def prepare_state(state, data, now):\n    return None\n\n"
+            "def decide(data, derived, now):\n    return Decision(True, 45, 'always green')\n\n"
+            "def build_body(data, derived, decision):\n    return 'test body'\n"
+        )
+        self.config_path = Path(self._tmpdir.name) / "config.json"
+        self.config_path.write_text(json.dumps({
+            "home": str(self.home),
+            "probe": "fake_slow_probe",
+            "relay": {"target_tmux_session": "claude"},
+        }))
+
+    def tearDown(self):
+        self._tmpdir.cleanup()
+
+    def test_only_one_of_two_overlapping_invocations_relays(self):
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(self.probe_dir) + os.pathsep + env.get("PYTHONPATH", "")
+        driver = (
+            "import json, sys\n"
+            "from fleetbroker import runner\n"
+            "config = json.load(open(sys.argv[1]))\n"
+            "runner.run(config, dry_run=True)\n"
+        )
+        procs = [
+            subprocess.Popen([sys.executable, "-c", driver, str(self.config_path)], env=env)
+            for _ in range(2)
+        ]
+        for p in procs:
+            self.assertEqual(p.wait(timeout=10), 0)
+
+        log = (self.home / "log.txt").read_text()
+        self.assertEqual(log.count("GREEN LIGHT"), 1)
+        self.assertEqual(log.count("SKIP: another fleetbroker run"), 1)
+
+
 class TestStateAtomicity(unittest.TestCase):
     """state.save_state() writes to a tmp file then os.replace()s it -
     confirms a crash between those two steps never corrupts the real
