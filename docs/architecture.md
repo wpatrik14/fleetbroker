@@ -3,6 +3,30 @@
 This ties together pieces documented separately elsewhere - the goal here is
 the whole picture, not any one mechanism in isolation.
 
+## Invariant: one quota authority per account
+
+**One Anthropic account MUST have exactly one quota authority** - exactly
+one node running a quota-aware probe (`fleetbroker.probes.anthropic_usage`
+or any future quota probe) against that account. Every other fleet
+participant runs non-quota probes (`gh_backlog`, `gh_repo_watch`, or a
+custom one) and is a relay recipient only.
+
+This is not a soft limitation to work around later - it's a hard constraint
+on which topologies are valid at all. The daily spending cap tracked by the
+quota policy (`docs/README`'s "Current limitation") is per-node state, not
+account-wide state; two quota-broker nodes against the same account don't
+coordinate with each other, so each independently believes it has the full
+daily cap available, and the account's real effective daily cap silently
+doubles (or worse, with more nodes) - see the README's "Current limitation"
+section. There is currently no mechanism that detects or prevents this
+misconfiguration - avoiding it is entirely on whoever wires up a fleet's
+node configs.
+
+Fleet-wide quota accounting that would let this constraint be relaxed is a
+deliberate v2, not an oversight - see
+[issue #4](https://github.com/wpatrik14/fleetbroker/issues/4) for the open
+design question.
+
 ## A single node, internally
 
 Every node (a Proxmox LXC, a bare VM, any Debian host) runs the same three

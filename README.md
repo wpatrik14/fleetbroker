@@ -8,6 +8,12 @@ Safely share one Anthropic account's Claude Code usage quota across multiple
 independent, cooperating Claude Code instances — without starving your own
 interactive use, and without crashing shared infrastructure.
 
+Despite the name, fleetbroker doesn't proxy or route any requests — no
+traffic ever passes through it. It's a local decision function ("is there
+spare capacity right now?") plus a narrow relay ("hand this one message to
+the one persistent session that can act on it"). See
+["What this is"](#what-this-is) below for the actual mechanism.
+
 **Why this exists.** Running more than one Claude Code agent under the same
 subscription is increasingly normal — a home-lab node, a side project, a
 second site you help maintain. Nothing in Claude Code itself stops those
@@ -144,7 +150,9 @@ per-account**. Running two quota-broker nodes against the same account
 silently doubles the effective daily cap. v1's supported topology is exactly
 one quota-broker node per Anthropic account; every other fleet participant
 runs non-quota probes and is a relay recipient only. Fleet-wide quota
-accounting is a natural v2, not silently glossed over here.
+accounting is a natural v2, not silently glossed over here. This is a hard
+architectural invariant, not a soft gap — see
+[`docs/architecture.md`](docs/architecture.md#invariant-one-quota-authority-per-account).
 
 ## Support
 
