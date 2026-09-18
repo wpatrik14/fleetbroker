@@ -83,6 +83,28 @@ that stops one site from permanently outpacing another. No new database, no
 cross-node sync layer: the issue tracker already is the synchronized store
 both sites poll.
 
+## Specialized nodes instead of a swarm orchestrator
+
+Combining the two sections above - per-node personas and a shared backlog -
+already gets you most of what a "swarm" of specialized agents would look
+like, without adding an orchestrator, a task-decomposition engine, or a
+worker-pool abstraction: give each node a different `--profile` (a
+frontend-triage node, a security-review node, an infra-monitoring node,
+whatever roles you actually need), point all of them at the same
+`gh_backlog` repo, and each node's own quota-aware probe picks up backlog
+items independently, in its own idle windows. There is no central scheduler
+deciding who does what - each node decides for itself whether it has spare
+quota and eligible work, exactly as it would running solo.
+
+This is a deliberate non-goal, not a missing feature: routing a specific
+backlog item to the node with the right skill currently relies on you
+partitioning work sensibly (e.g. via `site:` reservation, or simply not
+filing a frontend task in a backlog only infra nodes poll). A `skill:`-style
+label for finer-grained routing is a plausible, low-risk future addition to
+`gh_backlog` if a real multi-persona fleet needs it - it is not implemented
+today because no concrete use case has needed it yet, and it doesn't require
+any architectural change when it does.
+
 ## Secrets: never fleetbroker's problem to solve, but a pattern that fits
 
 A profile's `mcp.json` never contains a real secret value, only `${VAR}`
