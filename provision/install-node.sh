@@ -185,10 +185,53 @@ PYEOF
     msg_ok "Profile applied"
 fi
 
+msg_info "Writing default quota-broker config"
+QUOTA_HOME="/root/.fleetbroker-quota"
+mkdir -p "$QUOTA_HOME"
+if [[ -f "$QUOTA_HOME/config.json" ]]; then
+    msg_ok "Config already exists at $QUOTA_HOME/config.json - leaving it untouched"
+else
+    cat > "$QUOTA_HOME/config.json" <<EOF
+{
+  "name": "quota-broker",
+  "home": "$QUOTA_HOME",
+  "probe": "fleetbroker.probes.anthropic_usage",
+  "relay": {
+    "target_tmux_session": "claude"
+  }
+}
+EOF
+    msg_ok "Default config written to $QUOTA_HOME/config.json (works as-is - no placeholders to edit)"
+fi
+
+msg_info "Wiring up cron"
+CLAUDE_BIN_DIR="$(dirname "$(command -v claude)")"
+CRON_PATH_LINE="PATH=${CLAUDE_BIN_DIR}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin"
+CRON_JOB_LINE="0 * * * * /opt/fleetbroker/.venv/bin/fleetbroker run $QUOTA_HOME/config.json >> $QUOTA_HOME/log.txt 2>&1"
+EXISTING_CRON="$(crontab -l 2>/dev/null || true)"
+if grep -qF "$QUOTA_HOME/config.json" <<<"$EXISTING_CRON"; then
+    msg_ok "Crontab entry already present - leaving it untouched"
+else
+    {
+        if ! grep -q '^PATH=' <<<"$EXISTING_CRON"; then
+            echo "$CRON_PATH_LINE"
+        fi
+        [[ -n "$EXISTING_CRON" ]] && echo "$EXISTING_CRON"
+        echo "$CRON_JOB_LINE"
+    } | crontab -
+    msg_ok "Crontab entry added (hourly quota-broker check)"
+fi
+
+msg_info "Running fleetbroker doctor"
+if /opt/fleetbroker/.venv/bin/fleetbroker doctor "$QUOTA_HOME/config.json"; then
+    msg_ok "doctor passed - the quota broker is fully wired up"
+else
+    msg_error "doctor reported a problem - see output above"
+fi
+
 echo
 echo "=== Node ready: '$FLEET_NAME' ==="
-echo "Next steps:"
-echo "  1. Copy an example config from examples/ into a probe home dir, edit placeholders"
-echo "  2. /opt/fleetbroker/.venv/bin/fleetbroker doctor <config.json>"
-echo "  3. Add the matching line from examples/crontab.example to root's crontab"
-echo "  4. From another fleet node: ListAgents should now list '$FLEET_NAME'"
+echo "Nothing else to configure - the default config and cron entry are live."
+echo "From another fleet node: ListAgents should now list '$FLEET_NAME'."
+echo "To customize (multi-site fairness, excluding other tmux sessions, a"
+echo "different probe): edit $QUOTA_HOME/config.json - see examples/ and docs/."

@@ -49,7 +49,7 @@ def _forbidden_clause(cfg: dict[str, Any], locale: str) -> str:
 
 
 def build_prompt(cfg: dict[str, Any], body: str) -> str:
-    locale = cfg.get("prompt_locale", "hu")
+    locale = cfg.get("prompt_locale", "en")
     template_path = resources.files("fleetbroker.prompts").joinpath(f"relay_{locale}.txt")
     template = template_path.read_text()
     return template.format(

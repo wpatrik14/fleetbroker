@@ -40,10 +40,10 @@ class TestRelayPrompt(unittest.TestCase):
         self.assertIn("tmux session 'claude'.", prompt)  # no dangling "( )"
         self.assertNotIn("()", prompt)
 
-    def test_defaults_to_hungarian_when_locale_unset(self):
+    def test_defaults_to_english_when_locale_unset(self):
         cfg = {"target_tmux_session": "claude"}
         prompt = relay.build_prompt(cfg, "x")
-        self.assertIn("Hasznald a ListAgents toolt", prompt)
+        self.assertIn("Use the ListAgents tool", prompt)
 
 
 if __name__ == "__main__":

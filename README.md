@@ -82,7 +82,10 @@ See [`provision/`](provision) for `create-ct.sh` (Proxmox LXC) and
 [`docs/auth.md`](docs/auth.md) first** — a node that needs to be discoverable
 via `ListAgents` cannot be provisioned fully non-interactively; there is a
 real, unavoidable ~60-second manual login step, and the docs explain exactly
-why and how to make it the *only* manual step.
+why and how to make it the *only* manual step. `install-node.sh` writes a
+working default quota-broker config, wires up cron, and self-checks with
+`fleetbroker doctor` automatically — there's nothing to edit unless you want
+to customize it.
 
 Optionally give the node its own persona, Skills, and MCP-server roster with
 `--profile <dir>` (`install-node.sh`) or a profile name (`create-ct.sh`) —
