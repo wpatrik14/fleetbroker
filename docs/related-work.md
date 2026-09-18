@@ -35,16 +35,24 @@ limit. This sidesteps a single account's rate limit rather than sharing it
 fairly; fleetbroker assumes exactly one account and never tries to get
 around its limit, only to divide the room inside it fairly.
 
-**Fleet (`fleetagents.dev`)** - the closest conceptual neighbor: persistent
-Claude Code agents as background daemons (launchd+tmux, bring-your-own
-subscription, "run 24/7"), which is the same deployment shape fleetbroker
-nodes use. But it's a full agent platform (per-agent credential vault,
-scheduled tasks, multi-channel comms, macOS/launchd-specific) built around
-*running* agents, not around the specific failure mode of **several such
-agents silently exhausting one shared rate limit** - it has no fair-share
-policy or quota-aware scheduling layer as far as its public documentation
-shows, and no equivalent to the crash-safe one-shot relay this project's own
-incident history forced into existence.
+**Fleet (`fleetagents.dev`, source at `derekennyAI/agent-platform`)** - the
+closest conceptual neighbor at the deployment-shape level: persistent Claude
+Code agents as background daemons (launchd+tmux, bring-your-own
+subscription, "run 24/7"). Checked directly against its README and file
+layout (not just its marketing page) to be sure: it's a full agent
+platform - a Supabase backend with 11 tables, a Node.js MCP admin server, a
+per-agent credential vault, OAuth connection flows, Telegram/iMessage/email
+channels, a skill validator, and an admin task queue for delegating work
+between agents. None of its documented features are about quota or rate
+limits - there is no mention of usage caps, fair-share scheduling, or
+protecting one instance's interactive use from another's background load
+anywhere in it, because it isn't solving that problem. It also brings in
+real infrastructure fleetbroker deliberately has none of (a database, a
+Node.js service, macOS/launchd as a hard requirement). The overlap really is
+just "keep a Claude Code process alive in tmux under your own subscription,"
+which is closer to a shared necessity than a shared design - fleetbroker's
+own version of that pattern predates any awareness of Fleet, driven by this
+project's own dated production incidents (`incidents.md`), not by its code.
 
 **Claude Code's built-in "Agent Teams"** - native multi-instance
 coordination for several sessions collaborating on **one task in one repo**
