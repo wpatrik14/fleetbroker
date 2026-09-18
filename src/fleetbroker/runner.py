@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from . import heartbeat
 from . import journal
 from . import lock
 from . import state as state_mod
@@ -19,6 +20,14 @@ def run(config: dict[str, Any], dry_run: bool = False) -> None:
             _run_locked(probe, config, home, dry_run)
     except lock.LockHeld as e:
         journal.log(home, f"SKIP: {e}")
+
+    # Fires on every completed tick, including a lock-contention SKIP - both
+    # mean the cron fired and this process ran end-to-end. It deliberately
+    # does NOT fire if something above raises a real exception (a bug, not a
+    # probe-level data error - those are already caught inside
+    # _run_locked() and don't propagate here), so a genuinely broken node
+    # still shows as down. See docs/heartbeat.md.
+    heartbeat.push(home, config.get("heartbeat"))
 
 
 def _run_locked(probe: Any, config: dict[str, Any], home: Path, dry_run: bool) -> None:

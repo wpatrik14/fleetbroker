@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import fleet_status
+from . import heartbeat
 from . import lock
 from . import runner
 from . import state as state_mod
@@ -72,6 +73,13 @@ def cmd_doctor(args: argparse.Namespace) -> int:
             print("[OK] run lock available (no other fleetbroker run in progress)")
         except lock.LockHeld:
             print("[INFO] run lock currently held - another fleetbroker run is in progress for this config")
+
+    heartbeat_config = config.get("heartbeat")
+    if heartbeat_config:
+        result = heartbeat.push(home, heartbeat_config, msg="fleetbroker doctor check")
+        check("heartbeat push reaches configured URL", bool(result), "see log.txt" if not result else "")
+    else:
+        print("[INFO] no 'heartbeat' configured - optional, see docs/heartbeat.md")
 
     print()
     print("Overall: " + ("OK" if ok else "FAIL"))
