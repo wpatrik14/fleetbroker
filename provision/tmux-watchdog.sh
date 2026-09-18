@@ -5,13 +5,17 @@
 # alone is not trustworthy. See docs/incidents.md #4.
 set -u
 
-if tmux has-session -t claude 2>/dev/null; then
-    if tmux list-panes -t claude -F '#{pane_current_command}' 2>/dev/null | grep -q '^claude$'; then
+# Overridable only for tests (test_resilience.py) - every real deployment
+# uses the fixed "claude" session name by convention (docs/addressing.md).
+SESSION="${FLEETBROKER_WATCHDOG_SESSION:-claude}"
+
+if tmux has-session -t "$SESSION" 2>/dev/null; then
+    if tmux list-panes -t "$SESSION" -F '#{pane_current_command}' 2>/dev/null | grep -q '^claude$'; then
         exit 0
     fi
 fi
 
-echo "tmux-watchdog: 'claude' session missing or dead -> restarting claude-tmux.service"
+echo "tmux-watchdog: '$SESSION' session missing or dead -> restarting claude-tmux.service"
 if [ -n "${WATCHDOG_DRYRUN:-}" ]; then
     echo "tmux-watchdog: DRYRUN - not restarting"
     exit 0

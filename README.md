@@ -141,6 +141,7 @@ repo into a shared backlog with priority/size labels and a fairness check
 | See the whole picture (deployment, cross-node comms, personas, backlog, secrets) | [`docs/architecture.md`](docs/architecture.md) |
 | See how this compares to similar-looking projects | [`docs/related-work.md`](docs/related-work.md) |
 | Understand why each safety mechanism exists | [`docs/incidents.md`](docs/incidents.md) |
+| See what's tested against real failures vs. manual-only | [`docs/chaos-testing.md`](docs/chaos-testing.md) |
 | Check Claude CLI version compatibility, run a smoke test | [`docs/compatibility.md`](docs/compatibility.md) |
 | Provision a new node's login correctly | [`docs/auth.md`](docs/auth.md) |
 | Understand relay addressing (tmux vs. peer name) | [`docs/addressing.md`](docs/addressing.md) |
