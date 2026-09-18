@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from fleetbroker import relay
+from fleetbroker.adapters.claude import remote_control as relay
 
 
 class TestRelayArgv(unittest.TestCase):

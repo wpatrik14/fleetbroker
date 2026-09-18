@@ -3,8 +3,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from . import journal, relay
+from . import journal
 from . import state as state_mod
+from .adapters.claude import remote_control as relay
 
 
 def run(config: dict[str, Any], dry_run: bool = False) -> None:

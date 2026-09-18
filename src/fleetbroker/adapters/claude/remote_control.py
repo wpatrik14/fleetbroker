@@ -1,9 +1,15 @@
+"""The Claude Code CLI adapter for relaying a message to the one persistent,
+full-context peer session - the only piece of fleetbroker that actually
+shells out to `claude`. Isolated here (not in core scheduling/policy code)
+because its correctness depends entirely on Claude Code CLI behavior that
+isn't a documented, stable contract - see docs/compatibility.md."""
+
 import subprocess
 from importlib import resources
 from pathlib import Path
 from typing import Any
 
-from . import journal
+from ... import journal
 
 # Load-bearing: this exact flag combination avoids spawning a full MCP-server
 # roster on every one-shot invocation. An earlier design without

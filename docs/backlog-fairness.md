@@ -67,5 +67,5 @@ pre-build speculatively.
   arbitrary text in front of the relay. The relay itself is hardened against
   this (the one-shot's `--allowed-tools` is restricted to `ListAgents`/
   `SendMessage`, and the prompt wraps the body as delimited, untrusted data -
-  see `fleetbroker.relay`), but prompt instructions are not a hard security
+  see `fleetbroker.adapters.claude.remote_control`), but prompt instructions are not a hard security
   boundary. Treat "trusted repo" as a real requirement, not a formality.

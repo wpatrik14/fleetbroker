@@ -1,6 +1,6 @@
 import unittest
 
-from fleetbroker import compat
+from fleetbroker.adapters.claude import compat
 
 
 class TestParseVersion(unittest.TestCase):

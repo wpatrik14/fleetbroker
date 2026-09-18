@@ -54,6 +54,34 @@ gets out of the way. See [`docs/incidents.md`](incidents.md) for why each of
 these pieces exists (the MCP-spawn-storm crash, the trust-dialog restart
 loop, the tmux-server environment race).
 
+## Claude-agnostic core vs. adapter
+
+Everything that depends on undocumented Claude Code CLI internals - the
+relay's exact argv, `~/.claude.json`/`.credentials.json` shapes, `claude
+auth status`/`--version` output parsing, tmux pane inspection - lives under
+`src/fleetbroker/adapters/claude/`:
+
+- `remote_control.py` - the relay (moved from the former top-level
+  `relay.py`): argv construction, prompt building, the one-shot invocation.
+- `usage.py` - reads `.credentials.json` and calls the OAuth usage endpoint.
+- `compat.py` - the verified Claude Code version range (moved from the
+  former top-level `compat.py`).
+- `status.py` - `claude auth status`/`--version` parsing and tmux session
+  health checks, used by `fleetbroker doctor`/`status`.
+
+Everything else - `runner.py`'s scheduling loop, `probes/quota_policy.py`'s
+decision logic, `state.py`, `journal.py` - has no idea what "Claude Code" is;
+it only knows about probes, decisions, and a `relay()` call it hands a
+prompt to. A probe's own dotted config path (e.g.
+`fleetbroker.probes.anthropic_usage`) is unaffected by this split and never
+changes - only the internal import of *how* that probe gathers data moved.
+
+The payoff: a future Claude Code CLI change (a renamed flag, a different
+credentials file shape) is isolated to one file under `adapters/claude/`,
+never to the scheduling or policy code. This split has no bearing on
+multi-backend support - it's about test isolation and blast radius, not a
+plan to add non-Claude backends.
+
 ## Cross-node communication
 
 Nodes never talk to each other directly - there is no custom transport in

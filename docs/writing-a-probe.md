@@ -33,7 +33,7 @@ def build_body(data: Any, derived: Any, decision: Decision) -> str:
     """Only called when decision.notify is True. Return the message text to
     hand to the relay - this is the ONLY thing your probe controls about the
     relay; the allow-list/deny-list framing around it is added by
-    fleetbroker.relay and cannot be overridden."""
+    fleetbroker.adapters.claude.remote_control and cannot be overridden."""
 ```
 
 ## What the runner guarantees you, so your probe doesn't have to

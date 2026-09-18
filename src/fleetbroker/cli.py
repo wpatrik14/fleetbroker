@@ -1,15 +1,15 @@
 import argparse
 import importlib
-import json
 import os
-import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import compat, runner
+from . import runner
 from . import state as state_mod
+from .adapters.claude import status as claude_status
+from .adapters.claude.compat import check_version
 from .config import load_config
 
 
@@ -30,34 +30,25 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         if not passed:
             ok = False
 
-    claude_bin = shutil.which("claude")
+    claude_bin = claude_status.claude_binary()
     check("claude on PATH", claude_bin is not None, claude_bin or "not found")
 
     if claude_bin:
-        result = subprocess.run(["claude", "auth", "status"], capture_output=True, text=True, timeout=15)
-        check("claude auth status", result.returncode == 0, result.stdout.strip() or result.stderr.strip())
+        auth = claude_status.get_auth_status()
+        check("claude auth status", auth.ok, auth.raw)
 
         # Never a hard failure - an unverified CLI version is a reason for
-        # caution, not proof of breakage. See fleetbroker.compat and
-        # docs/compatibility.md.
-        version_result = subprocess.run(["claude", "--version"], capture_output=True, text=True, timeout=15)
-        version_status, version_detail = compat.check_version(
-            version_result.stdout.strip() or version_result.stderr.strip()
-        )
+        # caution, not proof of breakage. See fleetbroker.adapters.claude.compat
+        # and docs/compatibility.md.
+        version_status, version_detail = check_version(claude_status.get_version_string())
         print(f"[{version_status}] claude version - {version_detail}")
 
     target = config.get("relay", {}).get("target_tmux_session")
     if target:
-        has_session = subprocess.run(
-            ["tmux", "has-session", "-t", target], capture_output=True
-        ).returncode == 0
-        check(f"tmux session '{target}' exists", has_session)
-        if has_session:
-            panes = subprocess.run(
-                ["tmux", "list-panes", "-t", target, "-F", "#{pane_current_command}"],
-                capture_output=True, text=True,
-            ).stdout.split()
-            check(f"tmux session '{target}' has a live claude pane", "claude" in panes, str(panes))
+        health = claude_status.tmux_session_health(target)
+        check(f"tmux session '{target}' exists", health.exists)
+        if health.exists:
+            check(f"tmux session '{target}' has a live claude pane", health.has_live_claude_pane, str(health.panes))
 
     home = Path(config["home"]).expanduser()
     check(f"home dir '{home}' writable", os.access(home, os.W_OK) if home.exists() else True)
@@ -81,32 +72,27 @@ def cmd_status(args: argparse.Namespace) -> int:
 
     print(f"NODE  ({config.get('name', str(args.config))})")
 
-    claude_bin = shutil.which("claude")
+    claude_bin = claude_status.claude_binary()
     if claude_bin is None:
         print("  claude auth:   claude not found on PATH")
     else:
-        result = subprocess.run(["claude", "auth", "status"], capture_output=True, text=True, timeout=15)
-        try:
-            info = json.loads(result.stdout)
+        auth = claude_status.get_auth_status()
+        if auth.info:
             print(
-                f"  claude auth:   {info.get('email', '?')} "
-                f"(org: {info.get('orgName', '?')}, plan: {info.get('subscriptionType', '?')})"
+                f"  claude auth:   {auth.info.get('email', '?')} "
+                f"(org: {auth.info.get('orgName', '?')}, plan: {auth.info.get('subscriptionType', '?')})"
             )
-        except (json.JSONDecodeError, ValueError):
-            print(f"  claude auth:   {result.stdout.strip() or result.stderr.strip()}")
+        else:
+            print(f"  claude auth:   {auth.raw}")
 
     target = config.get("relay", {}).get("target_tmux_session")
     if target:
-        has_session = subprocess.run(["tmux", "has-session", "-t", target], capture_output=True).returncode == 0
-        if not has_session:
+        health = claude_status.tmux_session_health(target)
+        if not health.exists:
             print(f"  tmux '{target}':   OFFLINE")
         else:
-            panes = subprocess.run(
-                ["tmux", "list-panes", "-t", target, "-F", "#{pane_current_command}"],
-                capture_output=True, text=True,
-            ).stdout.split()
-            alive = "claude" in panes
-            print(f"  tmux '{target}':   {'ONLINE' if alive else 'STALE'} (pane: {panes})")
+            state_label = "ONLINE" if health.has_live_claude_pane else "STALE"
+            print(f"  tmux '{target}':   {state_label} (pane: {health.panes})")
 
     print()
     print(f"PROBE  ({config['probe']})")

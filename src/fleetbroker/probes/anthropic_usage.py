@@ -11,7 +11,11 @@ separate login, no extra dependency to stand up.
 `decide()`/`prepare_state()`/`build_body()`/`default_state()` are
 intentionally re-exported from `fleetbroker.probes.quota_policy` unchanged -
 the policy doesn't depend on where the numbers came from, only `gather()`
-does.
+does. This module keeps its dotted import path stable (existing configs
+reference `"probe": "fleetbroker.probes.anthropic_usage"` by string), but
+the actual credentials-reading and HTTP call live in
+`fleetbroker.adapters.claude.usage` - see docs/architecture.md's
+"Claude-agnostic core vs. adapter" section.
 
 ## How this endpoint was found
 
@@ -43,34 +47,15 @@ a published/versioned API, so it can change or disappear without notice.
   entire Remote Control identity.
 """
 
-import json
-import urllib.request
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
+from ..adapters.claude.usage import fetch_usage
 from .quota_policy import build_body, decide, default_state, prepare_state  # noqa: F401
-
-USAGE_API_URL = "https://api.anthropic.com/api/oauth/usage"
-API_BETA_HEADER = "oauth-2025-04-20"
-DEFAULT_CREDENTIALS_PATH = "~/.claude/.credentials.json"
 
 
 def gather(probe_config: dict[str, Any]) -> dict[str, Any]:
-    creds_path = Path(probe_config.get("credentials_path", DEFAULT_CREDENTIALS_PATH)).expanduser()
-    creds = json.loads(creds_path.read_text())
-    access_token = creds["claudeAiOauth"]["accessToken"]
-
-    req = urllib.request.Request(
-        USAGE_API_URL,
-        headers={
-            "Authorization": f"Bearer {access_token}",
-            "anthropic-beta": API_BETA_HEADER,
-        },
-    )
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        raw = json.loads(resp.read())
-
+    raw = fetch_usage(probe_config)
     return _parse_usage(raw)
 
 

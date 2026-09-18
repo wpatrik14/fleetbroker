@@ -19,7 +19,7 @@ hard enough to need a forced reboot.
 combination starts a genuinely MCP-free one-shot session — core tools like
 `ListAgents`/`SendMessage` still work (they aren't MCP-based), but the entire
 "spin up a full integration roster" path is skipped. This is why
-`fleetbroker.relay` owns this argv construction and does not expose it for
+`fleetbroker.adapters.claude.remote_control` owns this argv construction and does not expose it for
 probes to override.
 
 **Gotcha to remember**: `--mcp-config` is variadic and will swallow a
@@ -85,7 +85,7 @@ engaged, so the *next* tick would spawn another one-shot relay against a
 stuck process per tick, indefinitely. This is the same failure shape as
 incident #1, just reachable via a hang instead of a spawn storm.
 
-**Fix**: `fleetbroker.relay.relay()` catches `TimeoutExpired`/
+**Fix**: `fleetbroker.adapters.claude.remote_control.relay()` catches `TimeoutExpired`/
 `FileNotFoundError`/`OSError` itself and returns a plain success flag; it
 never raises. The runner always reaches `save_state()` regardless of relay
 outcome.

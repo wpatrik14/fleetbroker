@@ -12,7 +12,7 @@ distinguishable from an actual fleetbroker bug.
 
 ## Verified version range
 
-Tracked in `fleetbroker.compat`: versions `>= 2.1.0, < 3.0.0` are the range
+Tracked in `fleetbroker.adapters.claude.compat`: versions `>= 2.1.0, < 3.0.0` are the range
 this project has actually been run against (including the live provisioning
 run documented in `docs/getting-started.md`). This is a floor of evidence,
 not a ceiling of support - a version outside this range is simply

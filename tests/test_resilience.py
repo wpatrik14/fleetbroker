@@ -23,7 +23,9 @@ import urllib.error
 from pathlib import Path
 from unittest.mock import patch
 
-from fleetbroker import relay, runner, state
+from fleetbroker import runner, state
+from fleetbroker.adapters.claude import remote_control as relay
+from fleetbroker.adapters.claude import usage as claude_usage
 from fleetbroker.probes import anthropic_usage
 
 
@@ -145,15 +147,17 @@ class TestRealNetworkFailureHandling(unittest.TestCase):
 
     def test_real_connection_refused_is_caught_not_raised(self):
         # Port 1 is a real, guaranteed-closed low port - a real
-        # ConnectionRefusedError/URLError, not a mock.
-        with patch.object(anthropic_usage, "USAGE_API_URL", "http://127.0.0.1:1/"):
+        # ConnectionRefusedError/URLError, not a mock. Patched on the
+        # adapter module, where the constant is actually read from at call
+        # time - anthropic_usage.gather() just delegates to it.
+        with patch.object(claude_usage, "USAGE_API_URL", "http://127.0.0.1:1/"):
             with self.assertRaises((urllib.error.URLError, ConnectionRefusedError, OSError)):
                 anthropic_usage.gather({"credentials_path": str(self.creds_path)})
 
     def test_runner_survives_the_same_real_failure(self):
         import sys as _sys
         _sys.modules["fleetbroker.probes.anthropic_usage"] = anthropic_usage
-        with patch.object(anthropic_usage, "USAGE_API_URL", "http://127.0.0.1:1/"):
+        with patch.object(claude_usage, "USAGE_API_URL", "http://127.0.0.1:1/"):
             config = {
                 "home": str(self.home),
                 "probe": "fleetbroker.probes.anthropic_usage",
