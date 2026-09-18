@@ -21,6 +21,12 @@ problem than most adjacent projects solve — see
 [`docs/related-work.md`](docs/related-work.md) for how it compares to
 team-quota tools, multi-account rotation, and full agent platforms.
 
+Coordination runs entirely over Claude Code's own built-in
+`ListAgents`/`SendMessage` (Remote Control) — the same mechanism the
+official mobile and desktop apps use to reach your terminal sessions. That
+means checking on or messaging a fleet node from your phone isn't a feature
+this project had to build; see [`docs/architecture.md`](docs/architecture.md).
+
 ## The problem
 
 If you run more than one Claude Code instance under the same account (multiple

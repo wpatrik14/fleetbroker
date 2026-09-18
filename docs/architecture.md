@@ -43,8 +43,10 @@ flowchart LR
     subgraph SiteB["Site B (different network/host)"]
         B_tmux["tmux 'claude'<br/>(persistent session)"]
     end
+    You["You<br/>(mobile app / desktop app /<br/>another terminal)"]
     A_tmux <-->|ListAgents / SendMessage<br/>cloud-mediated, outbound-only| Cloud[("Claude Code<br/>Remote Control backend")]
     B_tmux <-->|ListAgents / SendMessage| Cloud
+    You <-->|ListAgents / SendMessage| Cloud
 ```
 
 `ListAgents`/`SendMessage` are a built-in Claude Code capability: each
@@ -56,6 +58,13 @@ relay targets a stable **tmux session name**, not the harness-generated
 peer name, and [`docs/auth.md`](auth.md) for the one real provisioning
 constraint this depends on (a node needs a full interactive login to be
 discoverable this way).
+
+This is the same Remote Control mechanism the official Claude Code mobile
+and desktop apps use to reach your terminal sessions - so any of those
+clients, logged into the same account, can list and message your fleet
+nodes directly too. Checking on a node or nudging it from your phone isn't
+a fleetbroker feature to build; it falls out of using a standard platform
+primitive instead of a custom transport.
 
 ## Personas: one identity per node, not one for the whole fleet
 
