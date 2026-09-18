@@ -18,6 +18,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import uuid
 import unittest
 import urllib.error
 from pathlib import Path
@@ -178,7 +179,13 @@ class TestWatchdogWithRealTmux(unittest.TestCase):
             raise unittest.SkipTest("tmux not available")
 
     def setUp(self):
-        self.session = f"fleetbroker-test-{os.getpid()}"
+        # Unique per test method, not just per process - os.getpid() alone
+        # is constant across the whole (in-process) test run, which meant
+        # every test in this class raced over the exact same session name
+        # right after the previous test's tearDown killed it (observed
+        # flaking in CI, not reproduced locally - a kill-then-recreate race
+        # under this specific name, not a real watchdog bug).
+        self.session = f"fleetbroker-test-{os.getpid()}-{uuid.uuid4().hex[:8]}"
         self._fakebin_dir = tempfile.TemporaryDirectory()
 
     def tearDown(self):
