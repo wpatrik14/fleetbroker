@@ -8,7 +8,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import runner
+from . import compat, runner
 from . import state as state_mod
 from .config import load_config
 
@@ -36,6 +36,15 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     if claude_bin:
         result = subprocess.run(["claude", "auth", "status"], capture_output=True, text=True, timeout=15)
         check("claude auth status", result.returncode == 0, result.stdout.strip() or result.stderr.strip())
+
+        # Never a hard failure - an unverified CLI version is a reason for
+        # caution, not proof of breakage. See fleetbroker.compat and
+        # docs/compatibility.md.
+        version_result = subprocess.run(["claude", "--version"], capture_output=True, text=True, timeout=15)
+        version_status, version_detail = compat.check_version(
+            version_result.stdout.strip() or version_result.stderr.strip()
+        )
+        print(f"[{version_status}] claude version - {version_detail}")
 
     target = config.get("relay", {}).get("target_tmux_session")
     if target:
