@@ -51,9 +51,9 @@ And I definitely don't want another agent invocation to take down the host.
 fleetbroker is the small, boring layer that makes that safe.
 ```
 
-Running more than one Claude Code agent under the same subscription is
-increasingly normal — a home-lab node, a side project, a second site you
-help maintain. Nothing in Claude Code itself stops those instances from
+Running multiple Claude Code agents against the same Anthropic account is
+useful for home labs, side projects, and multi-site setups. Nothing in
+Claude Code itself stops those instances from
 fighting over one rate limit, and a naive scheduler can crash the box they
 run on. Both of these happened in production before this project existed —
 see [`docs/incidents.md`](docs/incidents.md) for the real incidents this
@@ -107,7 +107,7 @@ Claude Code remains responsible for the agent, its tools, context, and
 cross-instance messaging. fleetbroker only decides when and how background
 work is allowed to wake an existing agent.
 
-## Why it matters
+## The core idea
 
 ```text
 Without fleetbroker:
@@ -225,6 +225,12 @@ This is an early-stage, opinionated tool built around Claude Code's current
 CLI and Remote Control behavior. Expect the integration surface to evolve as
 Claude Code evolves — see [`docs/compatibility.md`](docs/compatibility.md)
 for the verified CLI version range.
+
+## Support
+
+If fleetbroker is useful to you, consider supporting the project:
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/wpatrik14e)
 
 ## License
 
