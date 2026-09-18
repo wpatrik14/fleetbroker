@@ -61,3 +61,11 @@ pre-build speculatively.
 - Does not pick *which* repo to use - reusing an existing repo, or standing
   up a dedicated backlog repo, is a deliberate choice left to whoever wires
   `probe_config.repo` for real; this probe is repo-agnostic.
+- **Does not vet issue content.** Issue titles are relayed verbatim into a
+  live `claude -p` prompt. Only point this probe at a repo whose issue
+  authors you trust - anyone who can open an issue on a public repo can put
+  arbitrary text in front of the relay. The relay itself is hardened against
+  this (the one-shot's `--allowed-tools` is restricted to `ListAgents`/
+  `SendMessage`, and the prompt wraps the body as delimited, untrusted data -
+  see `fleetbroker.relay`), but prompt instructions are not a hard security
+  boundary. Treat "trusted repo" as a real requirement, not a formality.

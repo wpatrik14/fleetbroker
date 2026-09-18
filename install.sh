@@ -17,9 +17,12 @@ if ! command -v python3 >/dev/null 2>&1; then
     exit 1
 fi
 
-if [ -f "$(dirname "$0")/pyproject.toml" ]; then
-    # Running from inside an already-cloned checkout - install in place.
-    SRC_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "$(dirname "${BASH_SOURCE[0]}")/pyproject.toml" ]; then
+    # Running as a real script file (not piped via curl|bash, where $0 is
+    # just "bash" and dirname "$0" would be the caller's cwd - dangerously
+    # wrong if that happens to contain an unrelated pyproject.toml) from
+    # inside an already-cloned checkout - install in place.
+    SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 else
     # Bootstrapped via curl|bash with no local checkout - fetch one.
     if ! command -v git >/dev/null 2>&1; then

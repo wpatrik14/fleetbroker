@@ -9,11 +9,17 @@ from . import journal
 # roster on every one-shot invocation. An earlier design without
 # --strict-mcp-config hard-crashed the host container (spawned ~6 node
 # processes per fire, 3 fires in 24 minutes required a forced reboot).
-# Probes cannot override this - they only ever supply a message body.
+# --allowed-tools makes the one-shot structurally incapable of doing anything
+# but relay, even if a probe's body text (e.g. gh_backlog embeds untrusted
+# GitHub Issue titles) tries to talk it into something else - this is a real
+# hardening measure, not just prompt wording, since prompt instructions alone
+# are not a security boundary. Probes cannot override any of this - they
+# only ever supply a message body.
 RELAY_ARGV_PREFIX = [
     "claude", "-p",
     "--strict-mcp-config",
     "--mcp-config", '{"mcpServers":{}}',
+    "--allowed-tools", "ListAgents", "SendMessage",
     "--",
 ]
 

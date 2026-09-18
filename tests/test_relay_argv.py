@@ -39,6 +39,25 @@ class TestRelayArgv(unittest.TestCase):
         self.assertEqual(argv[-2], "--")  # separator immediately before the prompt
         self.assertEqual(captured["kwargs"].get("timeout"), 180)
 
+    def test_argv_restricts_to_listagents_and_sendmessage_only(self):
+        # Security hardening: even if a probe's body text (e.g. an untrusted
+        # GitHub Issue title relayed by gh_backlog) tries to talk the one-shot
+        # into doing something else, it structurally has no other tool to do
+        # it with.
+        captured = {}
+
+        def fake_run(argv, **kwargs):
+            captured["argv"] = argv
+            return subprocess.CompletedProcess(argv, 0, stdout="ok\n", stderr="")
+
+        with patch("subprocess.run", side_effect=fake_run):
+            relay.relay(self.home, {"target_tmux_session": "claude"}, "hello")
+
+        argv = captured["argv"]
+        tools_idx = argv.index("--allowed-tools")
+        self.assertEqual(argv[tools_idx + 1], "ListAgents")
+        self.assertEqual(argv[tools_idx + 2], "SendMessage")
+
     def test_timeout_is_configurable_but_defaults_to_180(self):
         captured = {}
 

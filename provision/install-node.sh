@@ -32,6 +32,11 @@ msg_info()  { echo -e " ${YW}i${CL} $1"; }
 msg_ok()    { echo -e " ${GN}\xe2\x9c\x93${CL} $1"; }
 msg_error() { echo -e " ${RD}x${CL} $1"; }
 
+if [[ ! "$FLEET_NAME" =~ ^[A-Za-z0-9_-]{1,64}$ ]]; then
+    msg_error "FleetName must match [A-Za-z0-9_-]{1,64} (got: '$FLEET_NAME') - it becomes part of a systemd unit, a file path, and a shell command, so no spaces, quotes, or path separators."
+    exit 1
+fi
+
 if [[ -n "$PROFILE_DIR" && ! -d "$PROFILE_DIR" ]]; then
     msg_error "Profile directory not found: $PROFILE_DIR"
     exit 1
