@@ -150,7 +150,10 @@ fleetbroker run /root/.fleetbroker-quota/config.json --dry-run
 
 Once it's running, `fleetbroker status <config>` shows the current decision,
 whether it would relay right now, and the last few log lines — read-only,
-spends nothing, never touches `state.json`.
+spends nothing, never touches `state.json`. If this host runs more than one
+probe config, `fleetbroker fleet-status examples/fleet.json` gives the same
+read-only overview across all of them in one shot, instead of checking each
+`log.txt` by hand.
 
 Then wire it into cron — see [`examples/crontab.example`](examples/crontab.example).
 `quota-broker.json` needs nothing but a logged-in `claude` CLI. Prefer to

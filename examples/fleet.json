@@ -1,0 +1,6 @@
+{
+  "nodes": [
+    {"name": "quota-broker", "config": "/root/.fleetbroker-quota/config.json"},
+    {"name": "gh-backlog", "config": "/root/.fleetbroker-backlog/config.json"}
+  ]
+}

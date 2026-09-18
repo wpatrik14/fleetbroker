@@ -6,6 +6,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from . import fleet_status
 from . import lock
 from . import runner
 from . import state as state_mod
@@ -134,6 +135,46 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_fleet_status(args: argparse.Namespace) -> int:
+    fleet_config = load_config(args.fleet_config)
+    nodes = fleet_config.get("nodes", [])
+    if not nodes:
+        print("No nodes configured in this fleet file.")
+        return 1
+
+    print(f"FLEET STATUS  ({len(nodes)} node(s))")
+    print()
+    for entry in nodes:
+        name = entry.get("name", entry["config"])
+        try:
+            config = load_config(Path(entry["config"]))
+        except Exception as e:
+            print(f"{name}")
+            print(f"  error:         failed to load config - {e}")
+            print()
+            continue
+
+        summary = fleet_status.summarize_node(name, config)
+        print(f"{name}")
+        if summary.error:
+            print(f"  error:         {summary.error}")
+        else:
+            print(f"  decision:      {summary.decision_reason}")
+            print(f"  would relay:   {'yes' if summary.would_relay else 'no'}")
+        print(f"  last relay:    {summary.last_relay}")
+        print(f"  cooldown:      {'active' if summary.cooldown_active else 'clear'}")
+        if summary.tmux_online is not None:
+            print(f"  tmux pane:     {'online' if summary.tmux_online else 'stale/offline'}")
+        print()
+
+    print(
+        "Note: tmux pane checks only work for nodes local to this host. For "
+        "nodes on other sites, cross-check node names against a live "
+        "ListAgents call from a Claude Code session for real liveness."
+    )
+    return 0
+
+
 def _crontab_has_entry(config_path: str) -> bool:
     # Match on the resolved absolute path only - a bare-filename fallback is
     # too weak once more than one node uses the conventional "config.json"
@@ -160,6 +201,12 @@ def main(argv: list[str] | None = None) -> int:
     p_status = sub.add_parser("status", help="show this node's current state without spending quota")
     p_status.add_argument("config", type=Path)
     p_status.set_defaults(func=cmd_status)
+
+    p_fleet_status = sub.add_parser(
+        "fleet-status", help="one-shot status overview across this host's configured probe homes"
+    )
+    p_fleet_status.add_argument("fleet_config", type=Path)
+    p_fleet_status.set_defaults(func=cmd_fleet_status)
 
     args = parser.parse_args(argv)
     return args.func(args)
