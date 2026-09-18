@@ -1,0 +1,3 @@
+{body}
+
+Use the ListAgents tool and find the one peer session whose location is tmux session '{target}'{forbidden_clause}. Send it the message above via SendMessage, and let it decide the next step. Do not contact any other session yourself, only this one. If this session cannot be found, report the error - do not improvise a different target.

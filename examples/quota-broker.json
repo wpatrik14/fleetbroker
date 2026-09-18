@@ -1,0 +1,25 @@
+{
+  "name": "quota-broker",
+  "home": "/root/.fleetbroker-quota",
+  "probe": "fleetbroker.probes.ha_quota",
+  "cooldown_seconds": 7200,
+  "relay": {
+    "target_tmux_session": "claude",
+    "forbidden_tmux_sessions": ["deepseek", "glm"],
+    "forbidden_peer_names": ["ClaudeCodeOtherFleetMember"],
+    "prompt_locale": "en",
+    "timeout_seconds": 180
+  },
+  "probe_config": {
+    "ha_host": "YOUR_HOME_ASSISTANT_IP",
+    "ha_port": 8123,
+    "token_file": "/root/.fleetbroker-quota/ha_token",
+    "entities": {
+      "session_usage": "sensor.claude_usage_YOURNAME_session_usage",
+      "week_usage": "sensor.claude_usage_YOURNAME_week_usage",
+      "session_reset_time": "sensor.claude_usage_YOURNAME_session_reset_time",
+      "weekly_reset_time": "sensor.claude_usage_YOURNAME_weekly_reset_time",
+      "week_usage_pace": "sensor.claude_usage_YOURNAME_week_usage_pace"
+    }
+  }
+}

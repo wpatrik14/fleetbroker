@@ -1,0 +1,13 @@
+[Unit]
+Description=Persistent tmux session for Claude Code (Anthropic / Remote Control)
+After=network.target
+
+[Service]
+Type=forking
+Environment=HOME=/root
+ExecStart=/usr/bin/tmux new-session -d -s claude -c __WORKDIR__ "export HOME=/root; unset ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN ANTHROPIC_MODEL ANTHROPIC_DEFAULT_OPUS_MODEL ANTHROPIC_DEFAULT_SONNET_MODEL ANTHROPIC_DEFAULT_HAIKU_MODEL; exec claude rc --name __FLEET_NAME__ --remote-control-session-name-prefix __FLEET_NAME__"
+ExecStop=-/usr/bin/tmux kill-session -t claude
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

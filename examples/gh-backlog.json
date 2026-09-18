@@ -1,0 +1,18 @@
+{
+  "name": "gh-backlog",
+  "home": "/root/.fleetbroker-backlog",
+  "probe": "fleetbroker.probes.gh_backlog",
+  "cooldown_seconds": 3600,
+  "relay": {
+    "target_tmux_session": "claude",
+    "forbidden_tmux_sessions": ["deepseek", "glm"],
+    "prompt_locale": "en",
+    "timeout_seconds": 180
+  },
+  "probe_config": {
+    "repo": "YOUR_GITHUB_ORG/YOUR_BACKLOG_REPO",
+    "site": "home",
+    "known_sites": ["site-a", "site-b"],
+    "fairness_window_days": 7
+  }
+}

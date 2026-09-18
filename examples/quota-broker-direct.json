@@ -1,0 +1,16 @@
+{
+  "name": "quota-broker-direct",
+  "home": "/root/.fleetbroker-quota-direct",
+  "probe": "fleetbroker.probes.anthropic_usage",
+  "cooldown_seconds": 7200,
+  "relay": {
+    "target_tmux_session": "claude",
+    "forbidden_tmux_sessions": ["deepseek", "glm"],
+    "forbidden_peer_names": ["ClaudeCodeOtherFleetMember"],
+    "prompt_locale": "en",
+    "timeout_seconds": 180
+  },
+  "probe_config": {
+    "credentials_path": "~/.claude/.credentials.json"
+  }
+}

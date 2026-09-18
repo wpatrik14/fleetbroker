@@ -1,0 +1,15 @@
+{
+  "name": "repo-watch",
+  "home": "/root/.fleetbroker-repowatch",
+  "probe": "fleetbroker.probes.gh_repo_watch",
+  "cooldown_seconds": 0,
+  "relay": {
+    "target_tmux_session": "claude",
+    "forbidden_tmux_sessions": ["deepseek", "glm"],
+    "prompt_locale": "en",
+    "timeout_seconds": 180
+  },
+  "probe_config": {
+    "repo": "YOUR_GITHUB_ORG/YOUR_REPO"
+  }
+}

@@ -1,0 +1,6 @@
+[Unit]
+Description=Check the claude tmux session is actually alive, restart if not
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/tmux-watchdog.sh

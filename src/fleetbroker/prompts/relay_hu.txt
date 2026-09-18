@@ -1,0 +1,3 @@
+{body}
+
+Hasznald a ListAgents toolt, es keresd meg azt a peer sessiont, amelynek helye tmux '{target}' session{forbidden_clause}. Kuldj neki SendMessage-dzsel a fenti uzenetet, es hagyd, hogy o dontse el a tovabbi lepest. Ne erj el te magad semmilyen mas sessiont, csak ezt az egyet. Ha ez a session nem talalhato, jelentsd a hibat, ne improvizalj mas celt.

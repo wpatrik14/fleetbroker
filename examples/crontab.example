@@ -1,0 +1,12 @@
+# cron runs with a minimal PATH - if `claude` was installed somewhere cron
+# won't find by default (e.g. ~/.local/bin from the native/curl installer,
+# rather than a global npm install), set PATH explicitly here, or the relay
+# will fail with "claude: command not found" even though it works fine
+# interactively. See docs/auth.md.
+# PATH=/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin
+
+# Quota broker: check hourly on the hour, stdout+stderr into the tool's own log.
+0 * * * * /opt/fleetbroker/.venv/bin/fleetbroker run /root/.fleetbroker-quota/config.json >> /root/.fleetbroker-quota/log.txt 2>&1
+
+# Repo watch: a policy-free example probe, once a day.
+42 6 * * * /opt/fleetbroker/.venv/bin/fleetbroker run /root/.fleetbroker-repowatch/config.json >> /root/.fleetbroker-repowatch/log.txt 2>&1

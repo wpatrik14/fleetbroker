@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fleetbroker"
+version = "0.1.0"
+description = "Safely share one Anthropic account's Claude Code usage quota across multiple independent, cooperating instances without starving interactive use or crashing shared infrastructure."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+fleetbroker = "fleetbroker.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+fleetbroker = ["prompts/*.txt"]
