@@ -236,5 +236,6 @@ echo
 echo "=== Node ready: '$FLEET_NAME' ==="
 echo "Nothing else to configure - the default config and cron entry are live."
 echo "From another fleet node: ListAgents should now list '$FLEET_NAME'."
+echo "Check in any time with: /opt/fleetbroker/.venv/bin/fleetbroker status $QUOTA_HOME/config.json"
 echo "To customize (multi-site fairness, excluding other tmux sessions, a"
 echo "different probe): edit $QUOTA_HOME/config.json - see examples/ and docs/."

@@ -120,6 +120,10 @@ ListAgents
 default config needs no editing to start working (see
 [`architecture.md`](architecture.md) for what's now running and why).
 
+From inside the node itself, `fleetbroker status /root/.fleetbroker-quota/config.json`
+gives a read-only snapshot - current auth, tmux session health, the probe's
+current decision, and the last few log lines - without spending anything.
+
 ## What's next
 
 - A second node, at a different site, gives the fairness/backlog features

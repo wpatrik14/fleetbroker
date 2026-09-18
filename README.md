@@ -85,6 +85,10 @@ fleetbroker doctor /root/.fleetbroker-quota/config.json
 fleetbroker run /root/.fleetbroker-quota/config.json --dry-run
 ```
 
+Once it's running, `fleetbroker status <config>` shows the current decision,
+whether it would relay right now, and the last few log lines — read-only,
+spends nothing, never touches `state.json`.
+
 Then wire it into cron — see [`examples/crontab.example`](examples/crontab.example).
 `quota-broker.json` needs nothing but a logged-in `claude` CLI. Prefer to
 install by hand instead? `install.sh` is just `python3 -m venv` + `pip
