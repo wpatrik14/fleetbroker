@@ -13,10 +13,6 @@ Claude Code. It does not replace Claude Code, provide another agent runtime,
 or orchestrate your agents' work — it makes running multiple independent
 instances against shared resources safer.
 
-Fleet nodes are independent machines - typically separate hosts, potentially
-on completely different networks. They coordinate over the internet rather
-than relying on a shared LAN or filesystem.
-
 ```text
                          Anthropic account
                                 │
