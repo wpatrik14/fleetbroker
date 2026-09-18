@@ -18,28 +18,27 @@ on completely different networks. They coordinate over the internet rather
 than relying on a shared LAN or filesystem.
 
 ```text
-                              Anthropic account
-                                     │
-                              shared usage quota
-                                     │
-                    ┌────────────────┴────────────────┐
-                    │                                 │
-              Network A                          Network B
-           (e.g. a home lab)                (e.g. another site, a VPS)
-                    │                                 │
-            ┌───────▼───────┐                 ┌───────▼───────┐
-            │    Node A     │                 │    Node B     │
-            │  fleetbroker  │                 │  fleetbroker  │
-            │ probe→policy  │                 │ probe→policy  │
-            │    →relay     │                 │    →relay     │
-            │       │       │                 │       │       │
-            │  Claude Code  │                 │  Claude Code  │
-            └───────┬───────┘                 └───────┬───────┘
-                    │                                 │
-                    └────────────────┬────────────────┘
-                                      │
-                       Claude Code Remote Control
-                    (ListAgents / SendMessage, over the internet)
+                         Anthropic account
+                                │
+                         shared usage quota
+                                │
+                        ┌───────────────┐
+                        │  fleetbroker  │
+                        │probe → policy │
+                        │    → relay    │
+                        └───────┬───────┘
+                                │
+                  coordination over the internet
+                    (ListAgents / SendMessage)
+                        ┌───────┴───────┐
+                        │               │
+                ┌───────▼──────┐ ┌──────▼───────┐
+                │   Network A  │ │   Network B  │
+                │              │ │              │
+                │ Proxmox host │ │ Proxmox host │
+                │   └─ Node A  │ │   └─ Node B  │
+                │      Claude  │ │      Claude  │
+                └──────────────┘ └──────────────┘
 ```
 
 No shared filesystem, LAN, or central agent host is required - each node
