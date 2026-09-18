@@ -16,7 +16,10 @@ the box they run on. fleetbroker is the small, boring layer in between: a
 pure decision function that knows when there's room, and a relay mechanism
 that's structurally incapable of repeating the failures that motivated it —
 see [`docs/incidents.md`](docs/incidents.md) for the real production
-incidents this project fixes, not hypothetical ones.
+incidents this project fixes, not hypothetical ones. This is a narrower
+problem than most adjacent projects solve — see
+[`docs/related-work.md`](docs/related-work.md) for how it compares to
+team-quota tools, multi-account rotation, and full agent platforms.
 
 ## The problem
 
@@ -120,6 +123,7 @@ repo into a shared backlog with priority/size labels and a fairness check
 | --- | --- |
 | Stand up the first node from a bare Proxmox host | [`docs/getting-started.md`](docs/getting-started.md) |
 | See the whole picture (deployment, cross-node comms, personas, backlog, secrets) | [`docs/architecture.md`](docs/architecture.md) |
+| See how this compares to similar-looking projects | [`docs/related-work.md`](docs/related-work.md) |
 | Understand why each safety mechanism exists | [`docs/incidents.md`](docs/incidents.md) |
 | Provision a new node's login correctly | [`docs/auth.md`](docs/auth.md) |
 | Understand relay addressing (tmux vs. peer name) | [`docs/addressing.md`](docs/addressing.md) |
