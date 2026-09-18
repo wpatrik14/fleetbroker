@@ -108,3 +108,26 @@ sets `remoteDialogSeen: true` in `~/.claude.json` before the first `claude
 rc` invocation. Verified to survive a full `systemctl restart` of the
 service, so the watchdog's restart-recovery path does not regress into this
 hang either.
+
+## 7. `claude-tmux.service` silently failing after switching to the native CLI installer
+
+**What happened**: `install-node.sh` switched from a global npm install of
+the Claude Code CLI to the native `curl | bash` installer, which places the
+binary under `~/.local/bin` instead of a directory already on systemd's
+default `PATH`. `claude-tmux.service`'s `ExecStart` ran `exec claude rc ...`
+with no `claude` on `PATH` - the shell inside the freshly-created tmux pane
+failed with "command not found" and exited, which killed the pane and, since
+it was the session's only window, the whole `claude` tmux session with it.
+`systemctl status` still reported `active (exited)` as a clean, expected
+exit (`Type=forking`/`RemainAfterExit=yes` again cannot tell the difference -
+see incident #4) - only `fleetbroker doctor`'s explicit `tmux has-session`
+check caught it. Found by provisioning a real node end to end on a fresh
+Proxmox host, not by inspection.
+
+**Fix**: `install-node.sh` resolves the actual install directory
+(`dirname "$(command -v claude)"`) once, right after installing the CLI, and
+bakes it into an explicit `Environment=PATH=...` line in
+`claude-tmux.service` - the same resolved directory is also reused for the
+crontab's `PATH=` line (see [`auth.md`](auth.md) for that half of the same
+class of bug). Neither the systemd unit nor cron may assume `claude` is
+reachable through some ambient shell-only PATH.

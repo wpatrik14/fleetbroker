@@ -42,22 +42,21 @@ apt-get update -qq
 apt-get install -y -qq curl git tmux python3 python3-venv ca-certificates >/dev/null
 msg_ok "Installed dependencies"
 
-if ! command -v node >/dev/null 2>&1; then
-    msg_info "Installing Node.js 22"
-    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - >/dev/null 2>&1
-    apt-get install -y -qq nodejs >/dev/null
-    msg_ok "Installed Node.js 22"
-else
-    msg_ok "Node.js already present ($(node --version))"
-fi
-
 if ! command -v claude >/dev/null 2>&1; then
-    msg_info "Installing Claude Code CLI"
-    npm install -g @anthropic-ai/claude-code >/dev/null 2>&1
+    msg_info "Installing Claude Code CLI (native installer, no Node.js needed)"
+    curl -fsSL https://claude.ai/install.sh | bash >/dev/null 2>&1
+    export PATH="$HOME/.local/bin:$PATH"
     msg_ok "Installed Claude Code CLI"
 else
     msg_ok "Claude Code CLI already present"
 fi
+
+# The native installer puts the binary in ~/.local/bin, which is on THIS
+# shell's PATH now but is NOT on the default PATH systemd or cron use -
+# both claude-tmux.service and the crontab entry below need this resolved
+# and baked in explicitly, or they silently fail to find `claude` even
+# though it works fine interactively (see docs/auth.md).
+CLAUDE_BIN_DIR="$(dirname "$(command -v claude)")"
 
 mkdir -p "$WORKDIR"
 msg_ok "Working directory: $WORKDIR (never /root itself - see docs/incidents.md #2)"
@@ -100,7 +99,7 @@ fi
 msg_ok "claude auth status verified"
 
 msg_info "Installing claude-tmux.service"
-sed "s|__WORKDIR__|$WORKDIR|g; s|__FLEET_NAME__|$FLEET_NAME|g" \
+sed "s|__WORKDIR__|$WORKDIR|g; s|__FLEET_NAME__|$FLEET_NAME|g; s|__CLAUDE_BIN_DIR__|$CLAUDE_BIN_DIR|g" \
     "$SCRIPT_DIR/claude-tmux.service.tmpl" > /etc/systemd/system/claude-tmux.service
 systemctl daemon-reload
 systemctl enable -q --now claude-tmux.service
@@ -205,7 +204,6 @@ EOF
 fi
 
 msg_info "Wiring up cron"
-CLAUDE_BIN_DIR="$(dirname "$(command -v claude)")"
 CRON_PATH_LINE="PATH=${CLAUDE_BIN_DIR}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin"
 CRON_JOB_LINE="0 * * * * /opt/fleetbroker/.venv/bin/fleetbroker run $QUOTA_HOME/config.json >> $QUOTA_HOME/log.txt 2>&1"
 EXISTING_CRON="$(crontab -l 2>/dev/null || true)"

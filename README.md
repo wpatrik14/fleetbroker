@@ -77,6 +77,10 @@ install -e .` — read it, it's short.
 
 ## Standing up a new fleet participant
 
+Starting from a bare Proxmox host with no containers yet? See
+[`docs/getting-started.md`](docs/getting-started.md) for the full
+step-by-step walkthrough.
+
 See [`provision/`](provision) for `create-ct.sh` (Proxmox LXC) and
 `install-node.sh` (standalone, works on any Debian host). **Read
 [`docs/auth.md`](docs/auth.md) first** — a node that needs to be discoverable
@@ -114,6 +118,7 @@ repo into a shared backlog with priority/size labels and a fairness check
 
 | Goal | Start here |
 | --- | --- |
+| Stand up the first node from a bare Proxmox host | [`docs/getting-started.md`](docs/getting-started.md) |
 | See the whole picture (deployment, cross-node comms, personas, backlog, secrets) | [`docs/architecture.md`](docs/architecture.md) |
 | Understand why each safety mechanism exists | [`docs/incidents.md`](docs/incidents.md) |
 | Provision a new node's login correctly | [`docs/auth.md`](docs/auth.md) |
