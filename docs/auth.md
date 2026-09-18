@@ -49,12 +49,30 @@ top of the crontab (see `examples/crontab.example`) to whatever directory
 `which claude` reports interactively, don't assume `doctor` passing proves
 the cron invocation will also find it.
 
-## Open question, not yet settled
+## Settled: `CLAUDE_CODE_OAUTH_TOKEN` cannot replace login for a relay node
 
-Whether a **relay-only** node - one that only needs to run probes and relay
-into its *own* local tmux session, without ever needing to be visible from
-outside that host - can use the lighter-weight `CLAUDE_CODE_OAUTH_TOKEN` path
-is unverified. If local peer discovery turns out not to depend on the Remote
-Control account bridge, this could become a genuinely headless "worker tier."
-Don't rely on this until someone has actually confirmed it; treat every node
-as needing the full interactive login until proven otherwise.
+Verified 2026-09-18. A relay-only node - one that only needs to run probes
+and relay into its *own* local tmux session - still needs the full
+interactive `claude auth login`. There is no lighter-weight path.
+
+What was tested, with a real `CLAUDE_CODE_OAUTH_TOKEN` minted via
+`claude setup-token`, in an isolated `$HOME` with no other credentials
+present:
+
+- **Headless one-shot (`claude -p`)**: works with the token alone. No
+  interactive login involved.
+- **Interactive/agentic `claude` (the mode a relay node actually needs, to
+  sit in a tmux session and process turns)**: the token is silently
+  ignored. The CLI falls straight into its login menu and, if you complete
+  it, requests a *full* login scope (`org:create_api_key user:profile
+  user:inference user:sessions:claude_code user:mcp_servers
+  user:file_upload`) - not the token's `user:inference`-only scope.
+  `user:sessions:claude_code` is presumably what session/peer discovery
+  actually keys off, which is why the interactive flow won't settle for
+  less.
+
+Conclusion: there is no "headless worker tier" via this token. Every node
+that runs an actual `claude` session - including ones that never need
+Remote Control visibility - needs the one-time interactive login described
+above. The token is only useful for pure one-shot inference calls outside
+the fleetbroker relay pattern entirely.
