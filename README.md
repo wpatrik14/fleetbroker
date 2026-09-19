@@ -214,6 +214,7 @@ affects the tick itself — see [`docs/heartbeat.md`](docs/heartbeat.md).
 | Goal | Start here |
 | --- | --- |
 | Stand up the first node from a bare Proxmox host | [`docs/getting-started.md`](docs/getting-started.md) |
+| See a real config, crontab line, and healthy `status` output | [`docs/example-deployment.md`](docs/example-deployment.md) |
 | See the whole picture (deployment, cross-node comms, personas, backlog, secrets) | [`docs/architecture.md`](docs/architecture.md) |
 | See how this compares to similar-looking projects | [`docs/related-work.md`](docs/related-work.md) |
 | Understand why each safety mechanism exists | [`docs/incidents.md`](docs/incidents.md) |

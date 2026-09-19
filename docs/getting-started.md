@@ -124,6 +124,10 @@ From inside the node itself, `fleetbroker status /root/.fleetbroker-quota/config
 gives a read-only snapshot - current auth, tmux session health, the probe's
 current decision, and the last few log lines - without spending anything.
 
+See [`example-deployment.md`](example-deployment.md) for what a healthy
+node's config, crontab line, and `status` output actually look like in
+production use.
+
 ## What's next
 
 - A second node, at a different site, gives the fairness/backlog features
