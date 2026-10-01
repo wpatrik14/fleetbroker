@@ -226,6 +226,7 @@ affects the tick itself — see [`docs/heartbeat.md`](docs/heartbeat.md).
 | Share a backlog fairly across sites | [`docs/backlog-fairness.md`](docs/backlog-fairness.md) |
 | Source node secrets without committing them | [`docs/secrets-management.md`](docs/secrets-management.md) |
 | Get alerted when a node goes silent | [`docs/heartbeat.md`](docs/heartbeat.md) |
+| Share memory about you/the fleet across nodes | [`docs/memory-sync.md`](docs/memory-sync.md) |
 
 ## Limitations
 
