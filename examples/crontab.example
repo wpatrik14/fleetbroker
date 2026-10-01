@@ -10,3 +10,8 @@
 
 # Repo watch: a policy-free example probe, once a day.
 42 6 * * * /opt/fleetbroker/.venv/bin/fleetbroker run /root/.fleetbroker-repowatch/config.json >> /root/.fleetbroker-repowatch/log.txt 2>&1
+
+# Memory sync: optional, not a probe - see docs/memory-sync.md. Pushes this
+# node's scope:global memory files to a shared private repo and adopts any
+# new ones another node wrote, every 6h.
+15 */6 * * * /opt/fleetbroker/provision/memory-sync.sh YOUR_ORG/YOUR_MEMORY_REPO /root/.claude/projects/-root-<FleetName>/memory >> /root/.cache/fleetbroker-memory-sync.log 2>&1
