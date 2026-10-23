@@ -6,6 +6,8 @@ from unittest import mock
 
 from fleetbroker.probes import gh_repo_watch as probe
 
+from pre311 import pre_311_fromisoformat
+
 NOW = datetime(2026, 9, 17, 12, 0, tzinfo=timezone.utc)
 OLD = "2026-09-17T10:00:00+00:00"
 NEW = "2026-09-17T11:30:00Z"
@@ -260,28 +262,9 @@ class TestStateMigration(unittest.TestCase):
         self.assertEqual(state["repo_checks"]["b/two"], NOW.isoformat())
 
 
-class _Py310Datetime(datetime):
-    """datetime whose fromisoformat rejects a trailing 'Z', like Python < 3.11."""
-
-    @classmethod
-    def fromisoformat(cls, value):
-        if value.endswith(("Z", "z")):
-            raise ValueError(f"Invalid isoformat string: {value!r}")
-        return super().fromisoformat(value)
-
-
 class TestTimestampParsing(unittest.TestCase):
-    def test_parse_ts_accepts_z_offset_and_lowercase_z(self):
-        expected = datetime(2026, 9, 17, 11, 30, tzinfo=timezone.utc)
-        for value in ("2026-09-17T11:30:00Z", "2026-09-17T11:30:00z", "2026-09-17T11:30:00+00:00",
-                      "2026-09-17T13:30:00+02:00"):
-            with self.subTest(value=value):
-                parsed = probe._parse_ts(value)
-                self.assertEqual(parsed, expected)
-                self.assertIsNotNone(parsed.tzinfo)
-
     def test_gh_output_with_z_suffix_works_under_pre_311_parsing(self):
-        with mock.patch.object(probe, "datetime", _Py310Datetime):
+        with pre_311_fromisoformat():
             data, _ = run_gather({"repo": "a/one"}, {("a/one", "issue"): [item(1, updated="2026-09-17T11:30:00Z")]})
             derived = probe.prepare_state({"last_check": OLD}, data, NOW)
         self.assertEqual([i["number"] for i in derived["issues"]], [1])
@@ -295,7 +278,7 @@ class TestTimestampParsing(unittest.TestCase):
             ("a/one", "issue"): [item(1, updated="2026-09-17T11:30:00Z")],  # older than a/one's watermark
             ("b/two", "issue"): [item(2, updated="2026-09-17T11:30:00Z")],  # newer than b/two's watermark
         }
-        with mock.patch.object(probe, "datetime", _Py310Datetime):
+        with pre_311_fromisoformat():
             data, _ = run_gather({"repos": ["a/one", "b/two"]}, table)
             derived = probe.prepare_state(state, data, NOW)
         self.assertEqual([(i["repo"], i["number"]) for i in derived["issues"]], [("b/two", 2)])
