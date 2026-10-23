@@ -51,6 +51,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from ..adapters.claude.usage import fetch_usage
+from ..timeutil import parse_iso_timestamp
 from .quota_policy import build_body, decide, default_state, prepare_state  # noqa: F401
 
 
@@ -68,12 +69,12 @@ def _parse_usage(raw: dict[str, Any]) -> dict[str, Any]:
 
     session_reset = None
     if five_hour.get("resets_at"):
-        session_reset = datetime.fromisoformat(five_hour["resets_at"])
+        session_reset = parse_iso_timestamp(five_hour["resets_at"])
 
     week_reset = None
     week_pace = None
     if seven_day.get("resets_at"):
-        week_reset = datetime.fromisoformat(seven_day["resets_at"])
+        week_reset = parse_iso_timestamp(seven_day["resets_at"])
         if week_usage is not None:
             now = datetime.now(timezone.utc)
             week_seconds = 7 * 24 * 60 * 60

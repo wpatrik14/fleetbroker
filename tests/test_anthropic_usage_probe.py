@@ -4,6 +4,8 @@ from datetime import datetime, timedelta, timezone
 from fleetbroker.probes.anthropic_usage import _parse_usage
 from fleetbroker.probes import quota_policy
 
+from pre311 import pre_311_fromisoformat
+
 
 class TestParseUsage(unittest.TestCase):
     def test_parses_session_and_week_usage(self):
@@ -17,6 +19,23 @@ class TestParseUsage(unittest.TestCase):
         self.assertEqual(data["session_reset"], datetime.fromisoformat("2026-09-17T21:00:00+00:00"))
         self.assertEqual(data["week_reset"], datetime.fromisoformat("2026-09-20T08:00:00+00:00"))
         self.assertIsInstance(data["week_pace"], float)
+
+    def test_z_suffixed_resets_at_parses_and_week_pace_computes(self):
+        now = datetime.now(timezone.utc)
+        week_reset = (now + timedelta(days=3.5)).replace(microsecond=0)
+        session_reset = (now + timedelta(hours=2)).replace(microsecond=0)
+        raw = {
+            "five_hour": {"utilization": 10.0, "resets_at": session_reset.strftime("%Y-%m-%dT%H:%M:%SZ")},
+            "seven_day": {"utilization": 60.0, "resets_at": week_reset.strftime("%Y-%m-%dT%H:%M:%S.000Z")},
+        }
+        # Fails on Python 3.10 if _parse_usage bypasses the shared helper.
+        with pre_311_fromisoformat():
+            data = _parse_usage(raw)
+        self.assertEqual(data["session_reset"], session_reset)
+        self.assertEqual(data["week_reset"], week_reset)
+        self.assertIsNotNone(data["week_reset"].tzinfo)
+        # Half the week elapsed, 60% used => pace is about +10.
+        self.assertAlmostEqual(data["week_pace"], 10.0, delta=0.5)
 
     def test_missing_sections_do_not_raise(self):
         data = _parse_usage({})

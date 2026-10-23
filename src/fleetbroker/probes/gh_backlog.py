@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from ..probe import Decision
+from ..timeutil import parse_iso_timestamp
 
 FAIRNESS_WINDOW_DAYS_DEFAULT = 7
 _PRIORITY_RANK = {"P1": 1, "P2": 2, "P3": 3}
@@ -61,10 +62,6 @@ def _label_value(issue: dict, prefix: str) -> str | None:
     return None
 
 
-def _parse_dt(s: str) -> datetime:
-    return datetime.fromisoformat(s.replace("Z", "+00:00"))
-
-
 def _recent_claim_counts(issues: list[dict], known_sites: list[str], cutoff: datetime) -> dict[str, int]:
     counts = {s: 0 for s in known_sites}
     for issue in issues:
@@ -73,7 +70,7 @@ def _recent_claim_counts(issues: list[dict], known_sites: list[str], cutoff: dat
             continue
         if issue["state"] == "CLOSED":
             closed_at = issue.get("closedAt")
-            if not closed_at or _parse_dt(closed_at) < cutoff:
+            if not closed_at or parse_iso_timestamp(closed_at) < cutoff:
                 continue  # claimed long enough ago it no longer counts as "recent"
         counts[claimed_by] += 1
     return counts

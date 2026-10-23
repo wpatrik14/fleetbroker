@@ -26,20 +26,9 @@ from datetime import datetime
 from typing import Any
 
 from ..probe import Decision
+from ..timeutil import parse_iso_timestamp
 
 _REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
-
-
-def _parse_ts(value: str) -> datetime:
-    """Parse an ISO 8601 timestamp, accepting a trailing ``Z``.
-
-    ``gh --json updatedAt`` emits ``...Z``, which ``datetime.fromisoformat``
-    only accepts from Python 3.11 on; normalise it so Python 3.10 works too.
-    Used for both ``gh`` output and values read back from ``state.json``.
-    """
-    if value.endswith(("Z", "z")):
-        value = value[:-1] + "+00:00"
-    return datetime.fromisoformat(value)
 
 
 def default_state() -> dict[str, Any]:
@@ -114,15 +103,15 @@ def gather(probe_config: dict[str, Any]) -> dict[str, Any]:
 
 
 def prepare_state(state: dict[str, Any], data: dict[str, Any], now: datetime) -> dict[str, list[dict]]:
-    fallback = _parse_ts(state["last_check"])
+    fallback = parse_iso_timestamp(state["last_check"])
     checks: dict[str, str] = state.get("repo_checks", {}) if data.get("multi") else {}
 
     def mark(item: dict) -> datetime:
-        return _parse_ts(checks[item["repo"]]) if item.get("repo") in checks else fallback
+        return parse_iso_timestamp(checks[item["repo"]]) if item.get("repo") in checks else fallback
 
     updated = {
-        "issues": [i for i in data["issues"] if _parse_ts(i["updatedAt"]) > mark(i)],
-        "prs": [p for p in data["prs"] if _parse_ts(p["updatedAt"]) > mark(p)],
+        "issues": [i for i in data["issues"] if parse_iso_timestamp(i["updatedAt"]) > mark(i)],
+        "prs": [p for p in data["prs"] if parse_iso_timestamp(p["updatedAt"]) > mark(p)],
     }
 
     if not data.get("multi"):
@@ -134,7 +123,7 @@ def prepare_state(state: dict[str, Any], data: dict[str, Any], now: datetime) ->
     for r in data["repos"]:
         new_checks[r] = now.isoformat()
     state["repo_checks"] = new_checks
-    state["last_check"] = min(new_checks.values(), key=_parse_ts)
+    state["last_check"] = min(new_checks.values(), key=parse_iso_timestamp)
     return updated
 
 
