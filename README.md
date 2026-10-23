@@ -194,6 +194,29 @@ to stand up. The probe interface itself is generic — see
 `fleetbroker.probes.gh_repo_watch` reference implementation (no policy
 engine at all, just a watermark comparison).
 
+### Watching several repositories (`gh_repo_watch`)
+
+`probe_config` takes either a single `repo` or a `repos` list (never both):
+
+```json
+"probe_config": { "repos": ["owner/one", "owner/two"] }
+```
+
+See [`examples/repo-watch-multi.json`](examples/repo-watch-multi.json). With
+`repo` (string) behaviour and output are exactly as before. With `repos`, each
+reported line is prefixed with its repository, e.g.
+`- [owner/one] Issue #7 [OPEN]: title - url`. `repos` entries must be unique,
+well-formed `owner/name` strings; a bad config is rejected with a clear error
+before anything is fetched.
+
+Watermarks are kept per repository (`repo_checks` in `state.json`, next to the
+original `last_check`, which is kept at the oldest per-repo value so existing
+state files load unchanged). If one repository cannot be fetched, the others
+are still reported, the failure is listed at the end of the message, and only
+the failing repository's watermark stays put, so its activity is reported once
+it recovers and nothing is reported twice. If every repository fails the tick
+is logged as an error and no state is written, as with a single repo.
+
 For multi-site setups, `fleetbroker.probes.gh_backlog` turns a GitHub Issues
 repo into a shared backlog with priority/size labels and a fairness check
 (so one site can't keep claiming work while a peer's queue sits idle) — see
